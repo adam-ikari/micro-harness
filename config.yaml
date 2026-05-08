@@ -1,0 +1,31 @@
+llm:
+  base_url: "http://localhost:11434"
+  model: "gemma3:4b"
+  num_ctx: 8192
+  num_predict: 2048
+
+mcp_servers: {}
+
+skill_paths:
+  - "~/.zero-agent/skills"
+  - "./.zero-agent/skills"
+
+security:
+  permissions:
+    run_shell: confirm
+  yolo_mode: false
+  shell:
+    timeout: 30
+    blocked_commands:
+      - "rm -rf /"
+      - "mkfs"
+      - "dd if="
+    confirm_patterns:
+      - "rm"
+      - "sudo"
+      - "git push"
+      - "chmod"
+
+history:
+  max_tokens: 8000
+  compress_threshold: 0.8
