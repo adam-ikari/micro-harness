@@ -3,6 +3,7 @@
 
 import asyncio
 import shutil
+import threading
 from typing import Any
 
 from mcp import ClientSession, StdioServerParameters
@@ -12,16 +13,43 @@ from zero_agent.mcp.types import Tool, ToolCall, ToolResult
 
 
 class MCPClient:
-    """MCP 客户端，管理多个 MCP server 连接。"""
+    """MCP client managing multiple MCP server connections."""
 
     def __init__(self, servers_config: dict[str, Any]):
         self.servers_config = servers_config
         self.sessions: dict[str, ClientSession] = {}
         self.tools: list[Tool] = []
         self._connected = False
+        self._connecting = False
+        self._connection_thread: threading.Thread | None = None
+
+    def connect_all_async(self) -> None:
+        """Start async connection in background thread (non-blocking)."""
+        if self._connected or self._connecting:
+            return
+
+        if not self.servers_config:
+            return
+
+        self._connecting = True
+        self._connection_thread = threading.Thread(
+            target=self._connect_in_thread,
+            daemon=True
+        )
+        self._connection_thread.start()
+
+    def _connect_in_thread(self) -> None:
+        """Connect in background thread."""
+        try:
+            asyncio.run(self._connect_all_async())
+            self._connected = True
+        except Exception as e:
+            print(f"MCP connection error: {e}")
+        finally:
+            self._connecting = False
 
     def connect_all(self) -> None:
-        """同步连接所有配置的 MCP server。"""
+        """Synchronous connection (blocking)."""
         if self._connected:
             return
         try:
@@ -31,7 +59,7 @@ class MCPClient:
             print(f"MCP connection error: {e}")
 
     async def _connect_all_async(self) -> None:
-        """异步连接所有 MCP server。"""
+        """Async connect all MCP servers."""
         for name, config in self.servers_config.items():
             try:
                 await self._connect_server(name, config)
@@ -39,7 +67,7 @@ class MCPClient:
                 print(f"Failed to connect to MCP server {name}: {e}")
 
     async def _connect_server(self, name: str, config: dict) -> None:
-        """连接单个 MCP server。"""
+        """Connect single MCP server."""
         command = config.get("command")
         args = config.get("args", [])
 
@@ -66,21 +94,29 @@ class MCPClient:
                         input_schema=tool.inputSchema or {},
                     ))
 
+    def is_connected(self) -> bool:
+        """Check if connection is complete."""
+        return self._connected
+
+    def is_connecting(self) -> bool:
+        """Check if connection is in progress."""
+        return self._connecting
+
     def call_tool_sync(self, call: ToolCall) -> ToolResult:
-        """同步调用工具。"""
+        """Sync tool call."""
         try:
             return asyncio.run(self._call_tool_async(call))
         except Exception as e:
             return ToolResult(content=f"Error: {e}", is_error=True)
 
     async def _call_tool_async(self, call: ToolCall) -> ToolResult:
-        """调用工具。
+        """Call tool.
 
         Args:
-            call: 工具调用请求
+            call: Tool call request
 
         Returns:
-            ToolResult: 执行结果
+            ToolResult: Execution result
         """
         # Find the server that has this tool
         for name, session in self.sessions.items():
@@ -99,7 +135,7 @@ class MCPClient:
         )
 
     def get_tool_definitions(self) -> list[dict[str, Any]]:
-        """获取所有工具定义（供 LLM 使用）。"""
+        """Get all tool definitions for LLM."""
         return [
             {
                 "name": tool.name,
@@ -110,5 +146,5 @@ class MCPClient:
         ]
 
     def has_tools(self) -> bool:
-        """检查是否有可用工具。"""
+        """Check if tools are available."""
         return len(self.tools) > 0

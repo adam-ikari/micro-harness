@@ -17,7 +17,7 @@ from zero_agent.security import SecurityManager, Decision, PathTrustManager, Pat
 from zero_agent.builtin.shell import execute as shell_execute
 
 from zero_agent.tui.widgets import Header, MessageList, InputBox, Footer
-from zero_agent.tui.screens import PermissionScreen
+from zero_agent.tui.screens import PermissionScreen, TrustDialog
 
 
 # Multi-language text
@@ -126,7 +126,22 @@ class ZeroAgentApp(App):
         welcome = I18N[self.lang]["welcome"]
         self._message_list.add_assistant_message(welcome)
 
+        # Ask about trusting current directory
+        if self.config.security.ask_trust_on_startup and not self.config.security.trust_current_dir:
+            self._show_trust_dialog()
+
         self._input_box.focus()
+
+    def _show_trust_dialog(self) -> None:
+        """Show trust dialog for current directory."""
+        def on_trust_result(trusted: bool) -> None:
+            if trusted:
+                self.path_trust.add_trusted_path(self.path_trust.current_dir)
+                self._message_list.add_assistant_message(
+                    f"Trusted directory: {self.path_trust.current_dir}"
+                )
+
+        self.push_screen(TrustDialog(lang=self.lang), on_trust_result)
 
     def t(self, key: str, *args) -> str:
         """Get text for current language."""

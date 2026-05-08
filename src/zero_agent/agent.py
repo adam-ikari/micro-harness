@@ -143,7 +143,7 @@ class Agent:
         self.skills = SkillLoader(config.skill_paths)
         self.security = SecurityManager(config.security, yolo=False)
         self.mcp_client = MCPClient(config.mcp_servers)
-        self.mcp_client.connect_all()  # Connect MCP servers on init
+        self.mcp_client.connect_all_async()  # Non-blocking async connection
         self.mode = mode if mode in MODES else "ask"
         self.lang = lang if lang in LANGUAGES else "en"
 
@@ -177,6 +177,13 @@ class Agent:
     def _get_all_tools(self) -> list[dict]:
         """Get all available tools."""
         tools = [get_tool_definition()]
+
+        # Check MCP connection status (polling)
+        if self.mcp_client.is_connecting():
+            # Connection in progress, wait briefly
+            import time
+            time.sleep(0.1)  # Brief wait for connection
+
         if self.mcp_client.has_tools():
             tools.extend(self.mcp_client.get_tool_definitions())
         return tools
