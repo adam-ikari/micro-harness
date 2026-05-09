@@ -41,8 +41,8 @@
   "hotPaths": [
     {
       "path": "src/zero_agent/agent.py",
-      "accessCount": 60,
-      "lastAccessed": 1778292758458,
+      "accessCount": 64,
+      "lastAccessed": 1778301274924,
       "type": "file"
     },
     {
@@ -53,8 +53,8 @@
     },
     {
       "path": "src/zero_agent/memory/manager.py",
-      "accessCount": 22,
-      "lastAccessed": 1778256080863,
+      "accessCount": 27,
+      "lastAccessed": 1778301507223,
       "type": "file"
     },
     {
@@ -70,21 +70,21 @@
       "type": "file"
     },
     {
-      "path": "src/zero_agent/cli.py",
-      "accessCount": 13,
-      "lastAccessed": 1778251910196,
-      "type": "file"
-    },
-    {
       "path": "src/zero_agent/llm.py",
-      "accessCount": 12,
-      "lastAccessed": 1778244276178,
+      "accessCount": 15,
+      "lastAccessed": 1778301364026,
       "type": "file"
     },
     {
       "path": "src/zero_agent/history.py",
-      "accessCount": 12,
-      "lastAccessed": 1778248919361,
+      "accessCount": 15,
+      "lastAccessed": 1778301539799,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/cli.py",
+      "accessCount": 13,
+      "lastAccessed": 1778251910196,
       "type": "file"
     },
     {
@@ -107,8 +107,8 @@
     },
     {
       "path": "src/zero_agent/skills/loader.py",
-      "accessCount": 7,
-      "lastAccessed": 1778249400259,
+      "accessCount": 8,
+      "lastAccessed": 1778295597681,
       "type": "file"
     },
     {

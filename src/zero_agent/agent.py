@@ -14,6 +14,7 @@ from zero_agent.mcp.client import MCPClient
 from zero_agent.skills.loader import SkillLoader
 from zero_agent.security import SecurityManager, Decision, PathTrustManager, PathParser, CommandParser
 from zero_agent.builtin.shell import execute as shell_execute, get_tool_definition
+from zero_agent.prompts import get_system_prompt, build_context_aware_prompt, detect_context
 
 
 # Language definitions
@@ -141,16 +142,55 @@ class Agent:
         return text
 
     def _build_messages(self, user_input: str) -> list[dict]:
-        """Build messages for LLM."""
-        messages = [{"role": "system", "content": "You are a helpful AI assistant with shell execution capabilities."}]
+        """Build messages for LLM with optimized prompts."""
+        # Use context-aware system prompt
+        system_prompt = build_context_aware_prompt(self.mode, user_input)
+        messages = [{"role": "system", "content": system_prompt}]
 
-        skills_prompt = self.skills.get_all_skills_prompt()
+        # Only load relevant skills (optimization for small models)
+        skills_prompt = self._get_relevant_skills_prompt(user_input)
         if skills_prompt:
-            messages.append({"role": "system", "content": f"Available skills:\n\n{skills_prompt}"})
+            messages.append({"role": "system", "content": f"Skills:\n{skills_prompt}"})
 
         messages.extend(self.history.get_messages())
         messages.append({"role": "user", "content": user_input})
         return messages
+
+    def _get_relevant_skills_prompt(self, user_input: str) -> str:
+        """Get only relevant skills based on user input.
+
+        Optimization: Don't load all skills, only matching ones.
+        """
+        # Get skills with triggers
+        skills_with_triggers = self.skills.get_skills_with_triggers()
+
+        if not skills_with_triggers:
+            # Fallback to all skills if no triggers defined
+            return self.skills.get_all_skills_prompt()
+
+        # Match skills by keywords
+        matched = []
+        user_lower = user_input.lower()
+
+        for skill in skills_with_triggers:
+            trigger = skill.get("trigger", {})
+            keywords = trigger.get("keywords", [])
+
+            # Check if any keyword matches
+            for kw in keywords:
+                if kw.lower() in user_lower:
+                    matched.append(skill)
+                    break
+
+        # Limit to top 2 skills to save tokens
+        if matched:
+            return "\n".join(
+                f"## {s['name']}\n{s['content'][:500]}"
+                for s in matched[:2]
+            )
+
+        # No match, return empty (saves tokens)
+        return ""
 
     def _get_all_tools(self) -> list[dict]:
         """Get all available tools."""

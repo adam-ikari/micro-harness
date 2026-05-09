@@ -1,5 +1,5 @@
 # src/zero_agent/llm.py
-"""Ollama API adapter for zero-agent."""
+"""Ollama API adapter for zero-agent optimized for small models."""
 
 from dataclasses import dataclass
 from typing import Any
@@ -35,19 +35,39 @@ class OllamaAdapter:
     def _simplify_tools(self, tools: list[dict]) -> list[dict]:
         """Simplify tool descriptions for small models.
 
-        Keep only name + description + required params to reduce token usage.
+        Ultra-minimal format to save tokens:
+        - Description limited to 80 chars
+        - Only required parameters
+        - No examples or long descriptions
         """
         simplified = []
         for tool in tools:
+            # Extract only essential info
+            name = tool.get("name", "")
+            desc = tool.get("description", "")[:80]  # Very short
+            params = tool.get("parameters", {})
+
+            # Build minimal parameter schema
+            properties = {}
+            required = []
+            for pname, pdef in params.items():
+                # Only include type and very short description
+                properties[pname] = {
+                    "type": pdef.get("type", "string"),
+                }
+                if pdef.get("description"):
+                    properties[pname]["description"] = pdef["description"][:50]
+                required.append(pname)
+
             simplified.append({
                 "type": "function",
                 "function": {
-                    "name": tool.get("name", ""),
-                    "description": tool.get("description", "")[:200],  # Limit description length
+                    "name": name,
+                    "description": desc,
                     "parameters": {
                         "type": "object",
-                        "properties": tool.get("parameters", {}),
-                        "required": list(tool.get("parameters", {}).keys()),
+                        "properties": properties,
+                        "required": required,
                     },
                 },
             })
@@ -56,14 +76,17 @@ class OllamaAdapter:
     def estimate_tokens(self, messages: list[dict]) -> int:
         """Estimate token count for messages.
 
-        Simple estimation: ~0.25 tokens per character (English), ~0.5 for Chinese.
+        Optimized estimation for mixed content:
+        - English: ~0.25 tokens/char
+        - Code: ~0.3 tokens/char
+        - Chinese: ~0.5 tokens/char
         """
         total_chars = 0
         for msg in messages:
             content = msg.get("content", "")
             total_chars += len(content)
             # Add message format overhead
-            total_chars += 20
+            total_chars += 15
         return int(total_chars * 0.3)  # Conservative estimate
 
     def chat(self, messages: list[dict], tools: list[dict] | None = None) -> ChatResponse:
@@ -103,32 +126,59 @@ class OllamaAdapter:
     def generate_summary(self, messages: list[dict]) -> str:
         """Generate history summary for compression.
 
-        Args:
-            messages: Messages to summarize
-
-        Returns:
-            str: Summary text
+        Optimized for small models with minimal prompt.
         """
         if not messages:
             return ""
 
-        # Build summary request
-        summary_prompt = (
-            "Summarize the following conversation briefly. "
-            "Keep key information and decisions. "
-            "Be concise (under 200 words).\n\n"
-        )
+        # Build minimal summary request
+        summary_prompt = "Summarize code changes. Keep: files, functions, fixes.\n\n"
 
         for msg in messages:
             role = msg.get("role", "unknown")
             content = msg.get("content", "")
+            # Truncate long messages
+            if len(content) > 200:
+                content = content[:200] + "..."
             summary_prompt += f"{role}: {content}\n"
 
         client = self._get_client()
         response = client.chat(
             model=self.model,
             messages=[{"role": "user", "content": summary_prompt}],
-            options={"num_predict": 300},
+            options={"num_predict": 200},  # Short summary
         )
 
         return response.get("message", {}).get("content", "")
+
+    def extract_facts(self, content: str) -> list[str]:
+        """Extract key facts from content.
+
+        Optimized for programming context.
+        """
+        if not content:
+            return []
+
+        prompt = f"Extract: file paths, function names, decisions. Or NONE.\n\n{content[:500]}"
+
+        client = self._get_client()
+        response = client.chat(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            options={"num_predict": 100},
+        )
+
+        result = response.get("message", {}).get("content", "")
+        if result.strip().upper() == "NONE":
+            return []
+
+        # Parse facts
+        facts = []
+        for line in result.split("\n"):
+            line = line.strip()
+            if line.startswith("- "):
+                facts.append(line[2:])
+            elif line:
+                facts.append(line)
+
+        return facts[:5]  # Limit to 5 facts
