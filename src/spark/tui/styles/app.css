@@ -1,11 +1,11 @@
 /* src/spark/tui/styles/app.css */
 
-/* 主应用 */
+/* Main application */
 ZeroAgentApp {
     background: $surface;
 }
 
-/* 状态栏 */
+/* Header */
 Header {
     dock: top;
     height: 1;
@@ -27,14 +27,14 @@ Header .model {
     color: $text-muted;
 }
 
-/* 消息列表 */
+/* Message list */
 MessageList {
     height: 1fr;
     overflow-y: auto;
     padding: 1;
 }
 
-/* 用户消息 */
+/* User message */
 UserMessage {
     margin: 1 0;
     padding: 1;
@@ -47,7 +47,7 @@ UserMessage .role {
     text-style: bold;
 }
 
-/* 助手消息 */
+/* Assistant message */
 AssistantMessage {
     margin: 1 0;
     padding: 1;
@@ -60,7 +60,7 @@ AssistantMessage .role {
     text-style: bold;
 }
 
-/* 工具消息 */
+/* Tool message */
 ToolMessage {
     margin: 1 0;
     padding: 1;
@@ -93,7 +93,7 @@ ToolMessage .tool-name {
     text-style: bold;
 }
 
-/* 输入框 */
+/* Input box */
 InputBox {
     dock: bottom;
     height: 3;
@@ -111,7 +111,7 @@ InputBox .mode-indicator {
     text-style: bold;
 }
 
-/* 底部栏 */
+/* Footer */
 Footer {
     dock: bottom;
     height: 1;
@@ -125,7 +125,7 @@ Footer .key {
     text-style: bold;
 }
 
-/* 权限弹窗 */
+/* Permission dialog */
 PermissionScreen {
     align: center middle;
 }
