@@ -15,6 +15,7 @@ from zero_agent.skills.loader import SkillLoader
 from zero_agent.security import SecurityManager, Decision, PathTrustManager, PathParser, CommandParser
 from zero_agent.builtin.shell import execute as shell_execute, get_tool_definition
 from zero_agent.prompts import get_system_prompt, build_context_aware_prompt, detect_context
+from zero_agent.feedback import HallucinationPreventer, ResultStatus
 
 
 # Language definitions
@@ -130,6 +131,12 @@ class Agent:
         # Command parser for security
         self.cmd_parser = CommandParser()
 
+        # Hallucination preventer for small models
+        self.hallucination_preventer = HallucinationPreventer()
+
+        # Track last tool result for verification
+        self._last_verified_result = None
+
         # Ask about trusting current dir on startup
         if config.security.ask_trust_on_startup and not config.security.trust_current_dir:
             self.path_trust.ask_trust_current_dir()
@@ -223,14 +230,14 @@ class Agent:
                             self.mode = "ask"
                             print(self.t("switched_mode", self.mode))
                         else:
-                            return self.t("error_write_plan")
+                            return self.hallucination_preventer.format_denied(tool_name, self.t("error_write_plan"))
                     else:
-                        return f"Error: Path '{path}' not trusted for {operation}."
+                        return self.hallucination_preventer.format_denied(tool_name, f"Path '{path}' not trusted for {operation}.")
 
                 if decision == Decision.CONFIRM:
                     confirm = input(f"Path {path} not trusted. Allow {operation}? [y/N]: ")
                     if confirm.lower() != "y":
-                        return self.t("error_cancelled")
+                        return self.hallucination_preventer.format_denied(tool_name, self.t("error_cancelled"))
                     # Add to trusted for this session
                     self.path_trust.add_trusted_path(path)
 
@@ -246,19 +253,23 @@ class Agent:
                     print(self.t("switched_mode", self.mode))
                     decision = self._get_tool_decision(tool_name, args)
                 else:
-                    return self.t("error_write_plan")
+                    return self.hallucination_preventer.format_denied(tool_name, self.t("error_write_plan"))
             else:
-                return self.t("error_denied", tool_name)
+                return self.hallucination_preventer.format_denied(tool_name, self.t("error_denied", tool_name))
 
         if decision == Decision.CONFIRM:
             confirm = input(self.t("allow", tool_name, args))
             if confirm.lower() != "y":
-                return self.t("error_cancelled")
+                return self.hallucination_preventer.format_denied(tool_name, self.t("error_cancelled"))
 
         if tool_name == "run_shell":
-            result = shell_execute(args.get("command", ""), args.get("timeout", 30))
-            return result["stdout"] if result["success"] else f"Error: {result['error']}"
-        return self.t("error_unknown", tool_name)
+            result = shell_execute(args.get("command", ""))
+            # Use hallucination preventer for structured feedback
+            formatted = self.hallucination_preventer.format_result(tool_name, result)
+            # Store for response verification
+            self._last_verified_result = self.hallucination_preventer.verifier.verify(tool_name, result)
+            return formatted
+        return self.hallucination_preventer.format_error(tool_name, self.t("error_unknown", tool_name))
 
     def _get_tool_decision(self, tool_name: str, args: dict) -> Decision:
         """Get tool call decision based on current mode."""
@@ -303,9 +314,27 @@ class Agent:
                 tool_name = call.get("function", {}).get("name", "")
                 args = call.get("function", {}).get("arguments", {})
                 result = self._handle_tool_call(tool_name, args)
-                results.append(f"[{tool_name}]: {result}")
-            return "\n".join(results)
+                results.append(result)
+            return "\n\n".join(results)
         return response.content
+
+    def _verify_model_acknowledgment(self, model_response: str) -> str:
+        """Verify model acknowledged tool results correctly.
+
+        Small models may ignore failure messages and hallucinate success.
+        This adds a reminder if the model didn't acknowledge a failure.
+        """
+        if self._last_verified_result is None:
+            return model_response
+
+        acknowledged, hint = self.hallucination_preventer.check_model_response(
+            model_response, self._last_verified_result
+        )
+
+        if not acknowledged:
+            return f"{hint}\n\n{model_response}"
+
+        return model_response
 
     def run_once(self, prompt: str) -> str:
         """Single execution mode."""

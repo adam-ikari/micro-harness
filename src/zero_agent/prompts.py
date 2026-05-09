@@ -6,13 +6,13 @@ from typing import Optional
 
 # Minimal system prompts per mode (optimized for coding)
 SYSTEM_PROMPTS = {
-    "plan": "Code analyzer. Read-only. Explain code, suggest fixes.",
-    "ask": "Coding assistant. Shell access. Confirm before write.",
-    "yolo": "Coding assistant. Execute freely. Fix bugs, write code.",
+    "plan": "Code analyzer. Read-only. Explain code, suggest fixes. IMPORTANT: Always check tool STATUS. FAILURE means do NOT proceed.",
+    "ask": "Coding assistant. Shell access. Confirm before write. IMPORTANT: Always check tool STATUS. FAILURE means do NOT proceed.",
+    "yolo": "Coding assistant. Execute freely. Fix bugs, write code. IMPORTANT: Always check tool STATUS. FAILURE means do NOT proceed.",
 }
 
 # Default fallback
-DEFAULT_SYSTEM = "Coding assistant."
+DEFAULT_SYSTEM = "Coding assistant. IMPORTANT: Always check tool STATUS. FAILURE means do NOT proceed."
 
 # Programming context hints
 CONTEXT_HINTS = {
