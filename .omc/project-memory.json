@@ -58,6 +58,12 @@
       "type": "file"
     },
     {
+      "path": "src/zero_agent/builtin/shell.py",
+      "accessCount": 18,
+      "lastAccessed": 1778306358098,
+      "type": "file"
+    },
+    {
       "path": "src/zero_agent/mcp/client.py",
       "accessCount": 17,
       "lastAccessed": 1778304756075,
@@ -85,12 +91,6 @@
       "path": "src/zero_agent/cli.py",
       "accessCount": 13,
       "lastAccessed": 1778251910196,
-      "type": "file"
-    },
-    {
-      "path": "src/zero_agent/builtin/shell.py",
-      "accessCount": 12,
-      "lastAccessed": 1778292641224,
       "type": "file"
     },
     {
