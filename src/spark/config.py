@@ -12,7 +12,7 @@ import yaml
 @dataclass
 class LLMConfig:
     base_url: str = "http://localhost:11434"
-    model: str = "gemma3:4b"
+    model: str = "gemma4"
     num_ctx: int = 8192
     num_predict: int = 2048
 
