@@ -291,9 +291,9 @@ Shortcuts:
                 tool_name = call.get("function", {}).get("name", "")
                 args = call.get("function", {}).get("arguments", {})
                 result = self._handle_tool_call(tool_name, args)
-                results.append(f"[{tool_name}]: {result}")
-            return "\n".join(results)
-        return response.content
+                results.append(result)
+            return "\n\n".join(results)
+        return response.content or ""
 
     def _handle_tool_call(self, tool_name: str, args: dict) -> str:
         """Handle tool call."""
@@ -330,7 +330,11 @@ Shortcuts:
 
         if tool_name == "Bash":
             result = shell_execute(args.get("command", ""))
-            return result["stdout"] if result["success"] else f"Error: {result['error']}"
+            # Format result with status marker
+            if result["success"]:
+                return f"✓ {result['stdout']}"
+            else:
+                return f"✗ Error: {result['error']}"
 
         return f"Error: Unknown tool '{tool_name}'"
 
