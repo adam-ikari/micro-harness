@@ -15,9 +15,9 @@ from spark.config import load_config
 @click.option("--lang", "-l", type=click.Choice(["en", "zh", "ja"]), default="en", help="Language: en, zh, ja")
 @click.option("--trust", is_flag=True, help="Trust current directory on startup (skip question)")
 @click.option("--memory", type=click.Path(exists=False), help="Memory file path (default: ./.spark/memory.md)")
-@click.option("--model", help="Ollama model name (e.g., gemma3:4b, qwen2.5:3b)")
-@click.option("--host", help="Ollama host address (e.g., localhost:11434)")
-def main(config: str | None, prompt: str | None, mode: str, lang: str, trust: bool, memory: str | None, model: str | None, host: str | None) -> None:
+@click.option("--model", help="Model name (e.g., gemma3:4b, gpt-4)")
+@click.option("--base-api-url", help="API base URL (e.g., http://localhost:11434)")
+def main(config: str | None, prompt: str | None, mode: str, lang: str, trust: bool, memory: str | None, model: str | None, base_api_url: str | None) -> None:
     """Spark - Minimal CLI agent with MCP, Skills, and security control.
 
     Modes:
@@ -41,16 +41,16 @@ def main(config: str | None, prompt: str | None, mode: str, lang: str, trust: bo
       --memory: Specify memory file path (default: ./.spark/memory.md)
 
     LLM:
-      --model: Ollama model name (e.g., gemma3:4b)
-      --host: Ollama host address (e.g., localhost:11434)
+      --model: Model name (e.g., gemma3:4b, gpt-4)
+      --base-api-url: API base URL (e.g., http://localhost:11434)
     """
     cfg = load_config(config)
 
     # Override LLM settings
     if model:
         cfg.llm.model = model
-    if host:
-        cfg.llm.base_url = f"http://{host}"
+    if base_api_url:
+        cfg.llm.base_url = base_api_url
 
     # Override trust setting if --trust flag is set
     if trust:

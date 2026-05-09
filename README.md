@@ -142,27 +142,29 @@ Works identically on Windows, Linux, macOS.
 
 ## Installation
 
-### 1. Install Ollama
-
-```bash
-# Linux/macOS
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Start Ollama
-ollama serve
-
-# Download a small model
-ollama pull gemma3:4b
-# or
-ollama pull qwen2.5:3b
-```
-
-### 2. Install Spark
-
 ```bash
 git clone https://github.com/adam-ikari/spark.git
 cd spark
 uv sync
+```
+
+## Configuration
+
+Config files are loaded from `~/.spark/config.yaml` (user) and `./.spark/config.yaml` (project).
+
+```yaml
+# ~/.spark/config.yaml
+llm:
+  model: "gemma3:4b"
+  base_url: "http://localhost:11434"
+  num_ctx: 8192
+
+security:
+  trust_current_dir: true
+  yolo_mode: false
+
+skill_paths:
+  - "~/.spark/skills"
 ```
 
 ## Development
@@ -245,8 +247,8 @@ spark -t
 | `--mode MODE` | `-m` | Mode: plan, ask, yolo |
 | `--lang LANG` | `-l` | Language: en, zh, ja |
 | `--trust` | | Trust current directory |
-| `--model MODEL` | | Ollama model (e.g., gemma3:4b) |
-| `--host HOST` | | Ollama host (e.g., localhost:11434) |
+| `--model MODEL` | | Model name (e.g., gemma3:4b) |
+| `--base-api-url URL` | | API base URL (e.g., http://localhost:11434) |
 | `--config PATH` | `-c` | Config file path |
 | `--version` | | Show version |
 | `--help` | | Show help |
