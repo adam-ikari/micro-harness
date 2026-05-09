@@ -19,7 +19,7 @@
   },
   "build": {
     "buildCommand": null,
-    "testCommand": "PYTHONPATH=src python -m pytest tests/test_builtin.py tests/test_history.py tests/test_config.py -v --tb=short 2>&1",
+    "testCommand": "PYTHONPATH=src python -m pytest tests/test_builtin.py tests/test_history.py tests/test_config.py tests/test_feedback.py -v --tb=short 2>&1",
     "lintCommand": "ruff check",
     "devCommand": null,
     "scripts": {}
@@ -41,8 +41,8 @@
   "hotPaths": [
     {
       "path": "src/zero_agent/agent.py",
-      "accessCount": 65,
-      "lastAccessed": 1778304732341,
+      "accessCount": 78,
+      "lastAccessed": 1778308766326,
       "type": "file"
     },
     {
@@ -52,15 +52,15 @@
       "type": "file"
     },
     {
-      "path": "src/zero_agent/tui/app.py",
-      "accessCount": 32,
-      "lastAccessed": 1778292871004,
+      "path": "src/zero_agent/builtin/shell.py",
+      "accessCount": 35,
+      "lastAccessed": 1778308744646,
       "type": "file"
     },
     {
-      "path": "src/zero_agent/builtin/shell.py",
-      "accessCount": 31,
-      "lastAccessed": 1778307149217,
+      "path": "src/zero_agent/tui/app.py",
+      "accessCount": 32,
+      "lastAccessed": 1778292871004,
       "type": "file"
     },
     {
@@ -94,15 +94,21 @@
       "type": "file"
     },
     {
+      "path": "README.md",
+      "accessCount": 13,
+      "lastAccessed": 1778311189186,
+      "type": "file"
+    },
+    {
       "path": "src/zero_agent/config.py",
       "accessCount": 11,
       "lastAccessed": 1778304737077,
       "type": "file"
     },
     {
-      "path": "README.md",
+      "path": "pyproject.toml",
       "accessCount": 9,
-      "lastAccessed": 1778239615399,
+      "lastAccessed": 1778311021424,
       "type": "file"
     },
     {
@@ -118,15 +124,15 @@
       "type": "file"
     },
     {
-      "path": "pyproject.toml",
-      "accessCount": 7,
-      "lastAccessed": 1778304756088,
-      "type": "file"
-    },
-    {
       "path": "src/zero_agent/security/path_parser.py",
       "accessCount": 7,
       "lastAccessed": 1778305933609,
+      "type": "file"
+    },
+    {
+      "path": "tests/test_builtin.py",
+      "accessCount": 7,
+      "lastAccessed": 1778311243807,
       "type": "file"
     },
     {
@@ -139,12 +145,6 @@
       "path": "src/zero_agent/security/path_trust.py",
       "accessCount": 5,
       "lastAccessed": 1778304737156,
-      "type": "file"
-    },
-    {
-      "path": "tests/test_builtin.py",
-      "accessCount": 5,
-      "lastAccessed": 1778307013049,
       "type": "file"
     },
     {

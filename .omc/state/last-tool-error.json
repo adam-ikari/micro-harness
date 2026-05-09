@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"PYTHONPATH=src python -m pytest tests/test_builtin.py tests/test_history.py tests/test_config.py -v --tb=short 2>&1\",\"description\":\"Run all tests\"}",
-  "error": "Exit code 1\n=============================== test session starts ===============================\nplatform linux -- Python 3.10.12, pytest-9.0.3, pluggy-1.6.0 -- /usr/bin/python\ncachedir: .pytest_cache\nrootdir: /home/gem/zero-agent\nconfigfile: pyproject.toml\nplugins: anyio-4.11.0\ncollecting ... collected 16 items\n\ntests/test_builtin.py::test_get_tool_definition FAILED                      [  6%]\ntests/test_builtin.py::test_shell_execute_pwd PASSED                        [ 12%]\ntests/test_builtin.p...",
-  "timestamp": "2026-05-09T06:11:31.023Z",
-  "retry_count": 2
+  "tool_input_preview": "{\"command\":\"PYTHONPATH=src python -m pytest tests/test_builtin.py tests/test_history.py tests/test_config.py tests/test_feedback.py -v --tb=short 2>&1\",\"description\":\"Run tests after rename\"}",
+  "error": "Exit code 1\n=============================== test session starts ===============================\nplatform linux -- Python 3.10.12, pytest-9.0.3, pluggy-1.6.0 -- /usr/bin/python\ncachedir: .pytest_cache\nrootdir: /home/gem/zero-agent\nconfigfile: pyproject.toml\nplugins: anyio-4.11.0\ncollecting ... collected 25 items\n\ntests/test_builtin.py::test_get_tool_definition PASSED                      [  4%]\ntests/test_builtin.py::test_shell_execute_pwd PASSED                        [  8%]\ntests/test_builtin.p...",
+  "timestamp": "2026-05-09T07:19:59.094Z",
+  "retry_count": 1
 }

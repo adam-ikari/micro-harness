@@ -1,7 +1,7 @@
 # tests/test_feedback.py
 """Tests for hallucination prevention in small models."""
 import pytest
-from zero_agent.feedback import (
+from micro_harness.feedback import (
     ToolResultVerifier,
     HallucinationPreventer,
     VerifiedResult,

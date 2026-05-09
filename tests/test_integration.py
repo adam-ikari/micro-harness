@@ -1,9 +1,9 @@
 # tests/test_integration.py
 """Integration tests for zero-agent."""
 
-from zero_agent.config import load_config
-from zero_agent.agent import Agent
-from zero_agent.security import Decision
+from micro_harness.config import load_config
+from micro_harness.agent import Agent
+from micro_harness.security import Decision
 
 
 def test_agent_full_flow():

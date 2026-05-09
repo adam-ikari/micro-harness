@@ -1,7 +1,7 @@
 [project]
-name = "zero-agent"
+name = "micro-harness"
 version = "0.1.0"
-description = "A minimal CLI agent with MCP, Skills, and security control"
+description = "A minimal harness for small models - Tools, Knowledge, Security"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-zero-agent = "zero_agent.cli:main"
+micro-harness = "micro_harness.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

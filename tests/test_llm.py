@@ -1,8 +1,8 @@
 # tests/test_llm.py
 import pytest
 from unittest.mock import Mock, patch
-from zero_agent.llm import OllamaAdapter
-from zero_agent.config import LLMConfig
+from micro_harness.llm import OllamaAdapter
+from micro_harness.config import LLMConfig
 
 
 def test_ollama_adapter_init():

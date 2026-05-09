@@ -1,9 +1,9 @@
 # tests/test_security.py
 import pytest
-from zero_agent.security import SecurityManager, Decision
-from zero_agent.security.permission import PermissionManager
-from zero_agent.security.risk_detector import RiskDetector
-from zero_agent.config import SecurityConfig
+from micro_harness.security import SecurityManager, Decision
+from micro_harness.security.permission import PermissionManager
+from micro_harness.security.risk_detector import RiskDetector
+from micro_harness.config import SecurityConfig
 
 
 def test_permission_allow():

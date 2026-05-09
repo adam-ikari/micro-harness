@@ -1,7 +1,7 @@
 # tests/test_mcp.py
 import pytest
-from zero_agent.mcp.types import Tool, ToolCall, ToolResult
-from zero_agent.mcp.client import MCPClient
+from micro_harness.mcp.types import Tool, ToolCall, ToolResult
+from micro_harness.mcp.client import MCPClient
 
 
 def test_mcp_types_tool():
@@ -51,7 +51,7 @@ def test_mcp_client_get_tool_definitions():
     client = MCPClient({})
 
     # 添加模拟工具
-    from zero_agent.mcp.types import Tool
+    from micro_harness.mcp.types import Tool
     client.tools = [
         Tool(name="tool1", description="Tool 1", input_schema={}),
         Tool(name="tool2", description="Tool 2", input_schema={}),

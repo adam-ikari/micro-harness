@@ -1,7 +1,7 @@
 # tests/test_history.py
 import pytest
-from zero_agent.history import HistoryManager
-from zero_agent.config import HistoryConfig
+from micro_harness.history import HistoryManager
+from micro_harness.config import HistoryConfig
 
 
 def test_history_add():

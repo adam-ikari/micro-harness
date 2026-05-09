@@ -1,7 +1,7 @@
 # tests/test_builtin.py
 """Tests for cross-platform shell execution."""
 import pytest
-from zero_agent.builtin.shell import execute, get_tool_definition
+from micro_harness.builtin.shell import execute, get_tool_definition
 
 
 def test_get_tool_definition():
@@ -34,7 +34,7 @@ def test_shell_execute_cat():
     result = execute("cat pyproject.toml")
 
     assert result["success"] is True
-    assert "zero-agent" in result["stdout"]
+    assert "micro-harness" in result["stdout"]
 
 
 def test_shell_execute_failed():
