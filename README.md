@@ -142,24 +142,87 @@ Works identically on Windows, Linux, macOS.
 
 ## Installation
 
+### 1. Install Ollama
+
 ```bash
-git clone https://github.com/yourname/micro-harness.git
+# Linux/macOS
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Start Ollama
+ollama serve
+
+# Download a small model
+ollama pull gemma3:4b
+# or
+ollama pull qwen2.5:3b
+```
+
+### 2. Install Micro Harness
+
+```bash
+git clone https://github.com/adam-ikari/micro-harness.git
 cd micro-harness
 pip install -e .
 ```
 
 ## Usage
 
+### REPL Mode (Interactive)
+
 ```bash
-# REPL mode
+# Start interactive REPL
 micro-harness
 
-# Single execution
-micro-harness --once "list files"
-
-# With mode
-micro-harness --mode yolo
+# With options
+micro-harness --mode yolo --lang zh
+micro-harness --trust  # Skip trust prompt
 ```
+
+### Single Execution
+
+```bash
+# Run once and exit
+micro-harness --once "list files in current directory"
+micro-harness --once "search python tutorials"
+micro-harness -o "read README.md" --mode plan
+```
+
+### TUI Mode (Terminal UI)
+
+```bash
+micro-harness --tui
+micro-harness -t
+```
+
+### CLI Options
+
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--once "prompt"` | `-o` | Run once with prompt and exit |
+| `--mode MODE` | `-m` | Mode: plan, ask, yolo |
+| `--lang LANG` | `-l` | Language: en, zh, ja |
+| `--tui` | `-t` | Launch TUI interface |
+| `--trust` | | Trust current directory |
+| `--config PATH` | `-c` | Config file path |
+| `--version` | | Show version |
+| `--help` | | Show help |
+
+### REPL Commands
+
+| Command | Description |
+|---------|-------------|
+| `/exit` | Exit REPL |
+| `/clear` | Clear history |
+| `/help` | Show help |
+| `/mode` | Show current mode |
+| `/lang` | Show current language |
+| `/plan` | Switch to plan mode |
+| `/ask` | Switch to ask mode |
+| `/yolo` | Switch to yolo mode |
+| `/en` | Switch to English |
+| `/zh` | Switch to 中文 |
+| `/ja` | Switch to 日本語 |
+| `Tab` | Cycle modes |
 
 ## Modes
 
