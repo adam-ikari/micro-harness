@@ -169,6 +169,13 @@ skill_paths:
 
 ## Development
 
+### Coding Standards
+
+- **Use English for all code comments** - Avoid non-ASCII characters in code files
+- **Keep it simple** - No over-engineering, YAGNI principle
+- **Explicit over implicit** - Clear signals for small models
+- **Cross-platform** - Pure Python, no shell dependencies
+
 ### Run in Development Environment
 
 ```bash
