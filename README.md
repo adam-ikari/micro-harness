@@ -165,6 +165,49 @@ cd spark
 pip install -e .
 ```
 
+## Development
+
+### Run in Development Environment
+
+```bash
+# Clone and enter project
+git clone https://github.com/adam-ikari/spark.git
+cd spark
+
+# Run directly without installation
+PYTHONPATH=src python -m spark --trust --once "your prompt"
+
+# Run tests
+PYTHONPATH=src python -m pytest tests/ -v
+
+# Run specific tests
+PYTHONPATH=src python -m pytest tests/test_builtin.py -v
+```
+
+### Install for Development
+
+```bash
+# Install in editable mode with dev dependencies
+pip install -e ".[dev]"
+
+# Or with uv
+uv sync
+```
+
+### Project Structure
+
+```
+spark/
+├── src/spark/          # Source code (src layout)
+│   ├── __init__.py
+│   ├── __main__.py     # Entry point for python -m
+│   ├── agent.py        # Core loop
+│   └── ...
+├── tests/              # Test files
+├── pyproject.toml      # Project config
+└── README.md
+```
+
 ## Usage
 
 ### REPL Mode (Interactive)
