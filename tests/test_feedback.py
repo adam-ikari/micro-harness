@@ -114,18 +114,35 @@ def test_model_acknowledgment_check():
 
 
 def test_failure_pattern_detection():
-    """Test detecting failure patterns in output."""
+    """Test that we trust explicit flags, not output patterns.
+
+    This is a design decision: pattern detection causes false positives
+    (e.g., grep "error:" returns "error:" in output but is successful).
+    We trust explicit success/returncode flags instead.
+    """
     verifier = ToolResultVerifier()
 
-    # Output with failure pattern but success=True (edge case)
+    # Output with "error:" but success=True - should be SUCCESS
+    # (e.g., grep "error:" file.txt returns lines with "error:")
     result = {
         "success": True,
-        "stdout": "Error: file not found",
+        "stdout": "error: file not found",  # This could be grep output
         "stderr": "",
         "returncode": 0,
     }
     verified = verifier.verify("run_shell", result)
-    # Should detect failure pattern
+    # Should trust explicit flags, not infer from output
+    assert verified.status == ResultStatus.SUCCESS
+
+    # Actual failure case - explicit success=False
+    result = {
+        "success": False,
+        "stdout": "",
+        "stderr": "error: file not found",
+        "returncode": 1,
+        "error": "Command failed",
+    }
+    verified = verifier.verify("run_shell", result)
     assert verified.status == ResultStatus.FAILURE
 
 

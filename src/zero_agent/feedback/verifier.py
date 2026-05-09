@@ -3,9 +3,13 @@
 
 Small models (gemma3:4b, qwen2.5:3b) often hallucinate success when tools fail.
 This module provides structured feedback to force models to acknowledge results.
+
+First principles:
+- Trust explicit flags (success, returncode) - most reliable signal
+- Don't infer from output patterns - causes false positives
+- Keep it simple - small models need clear, unambiguous signals
 """
 
-import re
 from dataclasses import dataclass
 from typing import Any, Optional
 from enum import Enum
@@ -74,42 +78,13 @@ class VerifiedResult:
 
 
 class ToolResultVerifier:
-    """Verify tool results and format for small models."""
+    """Verify tool results and format for small models.
 
-    # Patterns that indicate failure (for catching unmarked failures)
-    FAILURE_PATTERNS = [
-        r"error:",
-        r"failed",
-        r"not found",
-        r"permission denied",
-        r"no such file",
-        r"does not exist",
-        r"cannot",
-        r"unable to",
-        r"invalid",
-        r"timeout",
-    ]
-
-    # Patterns that indicate success
-    SUCCESS_PATTERNS = [
-        r"success",
-        r"completed",
-        r"created",
-        r"updated",
-        r"removed",
-        r"copied",
-        r"moved",
-        r"wrote \d+",
-    ]
-
-    def __init__(self, strict_mode: bool = True):
-        """Initialize verifier.
-
-        Args:
-            strict_mode: If True, require explicit success markers.
-                        If False, infer from output patterns.
-        """
-        self.strict_mode = strict_mode
+    First principles:
+    - Trust explicit flags (success, returncode) - most reliable
+    - Don't infer from output patterns - causes false positives
+    - Keep it simple - small models need clear signals
+    """
 
     def verify(self, tool_name: str, result: dict[str, Any]) -> VerifiedResult:
         """Verify tool execution result.
@@ -121,7 +96,7 @@ class ToolResultVerifier:
         Returns:
             VerifiedResult: Verified result with explicit status
         """
-        # Check explicit success flag first
+        # Check explicit success flag first (most reliable)
         if result.get("success") is False:
             return VerifiedResult(
                 status=ResultStatus.FAILURE,
@@ -130,7 +105,7 @@ class ToolResultVerifier:
                 error=result.get("error") or result.get("stderr") or "Unknown error",
             )
 
-        # Check return code
+        # Check return code (second most reliable)
         returncode = result.get("returncode", 0)
         if returncode != 0:
             return VerifiedResult(
@@ -140,28 +115,10 @@ class ToolResultVerifier:
                 error=result.get("stderr") or f"Exit code: {returncode}",
             )
 
-        # Check for error in output (catches unmarked failures)
+        # Success case - trust explicit flags, don't second-guess with patterns
+        # Pattern detection causes false positives (e.g., grep "error:" returns "error:" in output)
         output = result.get("stdout", "") or ""
-        stderr = result.get("stderr", "") or ""
-        combined = f"{output}\n{stderr}".lower()
 
-        # Look for failure patterns
-        for pattern in self.FAILURE_PATTERNS:
-            if re.search(pattern, combined, re.IGNORECASE):
-                # Check if there's also a success pattern (ambiguous)
-                has_success = any(
-                    re.search(sp, combined, re.IGNORECASE)
-                    for sp in self.SUCCESS_PATTERNS
-                )
-                if not has_success or self.strict_mode:
-                    return VerifiedResult(
-                        status=ResultStatus.FAILURE,
-                        tool_name=tool_name,
-                        output=output,
-                        error=f"Detected failure pattern: {pattern}",
-                    )
-
-        # Success case
         return VerifiedResult(
             status=ResultStatus.SUCCESS,
             tool_name=tool_name,
