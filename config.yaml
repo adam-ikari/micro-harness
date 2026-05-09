@@ -7,8 +7,8 @@ llm:
 mcp_servers: {}
 
 skill_paths:
-  - "~/.zero-agent/skills"
-  - "./.zero-agent/skills"
+  - "~/.spark/skills"
+  - "./.spark/skills"
 
 security:
   permissions:

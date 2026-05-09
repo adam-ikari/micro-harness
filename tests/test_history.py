@@ -1,7 +1,7 @@
 # tests/test_history.py
 import pytest
-from micro_harness.history import HistoryManager
-from micro_harness.config import HistoryConfig
+from spark.history import HistoryManager
+from spark.config import HistoryConfig
 
 
 def test_history_add():

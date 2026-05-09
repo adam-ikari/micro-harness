@@ -1,9 +1,9 @@
 # tests/test_security.py
 import pytest
-from micro_harness.security import SecurityManager, Decision
-from micro_harness.security.permission import PermissionManager
-from micro_harness.security.risk_detector import RiskDetector
-from micro_harness.config import SecurityConfig
+from spark.security import SecurityManager, Decision
+from spark.security.permission import PermissionManager
+from spark.security.risk_detector import RiskDetector
+from spark.config import SecurityConfig
 
 
 def test_permission_allow():

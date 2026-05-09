@@ -1,7 +1,7 @@
 # tests/test_skills.py
 import pytest
 from pathlib import Path
-from micro_harness.skills.loader import SkillLoader
+from spark.skills.loader import SkillLoader
 
 
 def test_skill_loader_load_file(tmp_path):

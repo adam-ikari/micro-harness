@@ -1,8 +1,8 @@
 # tests/test_llm.py
 import pytest
 from unittest.mock import Mock, patch
-from micro_harness.llm import OllamaAdapter
-from micro_harness.config import LLMConfig
+from spark.llm import OllamaAdapter
+from spark.config import LLMConfig
 
 
 def test_ollama_adapter_init():

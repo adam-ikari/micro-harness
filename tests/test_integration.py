@@ -1,9 +1,9 @@
 # tests/test_integration.py
-"""Integration tests for zero-agent."""
+"""Integration tests for spark."""
 
-from micro_harness.config import load_config
-from micro_harness.agent import Agent
-from micro_harness.security import Decision
+from spark.config import load_config
+from spark.agent import Agent
+from spark.security import Decision
 
 
 def test_agent_full_flow():

@@ -1,0 +1,153 @@
+/* src/spark/tui/styles/app.css */
+
+/* 主应用 */
+ZeroAgentApp {
+    background: $surface;
+}
+
+/* 状态栏 */
+Header {
+    dock: top;
+    height: 1;
+    background: $primary;
+    color: $text-on-primary;
+    padding: 0 1;
+}
+
+Header .mode {
+    color: $accent;
+    text-style: bold;
+}
+
+Header .lang {
+    color: $secondary;
+}
+
+Header .model {
+    color: $text-muted;
+}
+
+/* 消息列表 */
+MessageList {
+    height: 1fr;
+    overflow-y: auto;
+    padding: 1;
+}
+
+/* 用户消息 */
+UserMessage {
+    margin: 1 0;
+    padding: 1;
+    background: $primary-darken-2;
+    border-left: thick $primary;
+}
+
+UserMessage .role {
+    color: $primary;
+    text-style: bold;
+}
+
+/* 助手消息 */
+AssistantMessage {
+    margin: 1 0;
+    padding: 1;
+    background: $surface-darken-1;
+    border-left: thick $secondary;
+}
+
+AssistantMessage .role {
+    color: $secondary;
+    text-style: bold;
+}
+
+/* 工具消息 */
+ToolMessage {
+    margin: 1 0;
+    padding: 1;
+    background: $surface-darken-2;
+    border-left: thick $warning;
+}
+
+ToolMessage.pending {
+    border-left-color: $warning;
+}
+
+ToolMessage.running {
+    border-left-color: $primary;
+}
+
+ToolMessage.success {
+    border-left-color: $success;
+}
+
+ToolMessage.error {
+    border-left-color: $error;
+}
+
+ToolMessage.denied {
+    border-left-color: $error;
+}
+
+ToolMessage .tool-name {
+    color: $warning;
+    text-style: bold;
+}
+
+/* 输入框 */
+InputBox {
+    dock: bottom;
+    height: 3;
+    background: $surface-darken-1;
+    border-top: solid $primary;
+}
+
+InputBox Input {
+    height: 1fr;
+    margin: 0 1;
+}
+
+InputBox .mode-indicator {
+    color: $accent;
+    text-style: bold;
+}
+
+/* 底部栏 */
+Footer {
+    dock: bottom;
+    height: 1;
+    background: $surface-darken-2;
+    color: $text-muted;
+    padding: 0 1;
+}
+
+Footer .key {
+    color: $primary;
+    text-style: bold;
+}
+
+/* 权限弹窗 */
+PermissionScreen {
+    align: center middle;
+}
+
+PermissionDialog {
+    width: 60;
+    height: auto;
+    background: $surface;
+    border: thick $primary;
+    padding: 1;
+}
+
+PermissionDialog .title {
+    text-style: bold;
+    color: $warning;
+    margin-bottom: 1;
+}
+
+PermissionDialog .tool-info {
+    margin: 1 0;
+}
+
+PermissionDialog Button {
+    margin: 1 0;
+}

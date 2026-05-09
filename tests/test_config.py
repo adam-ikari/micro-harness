@@ -1,7 +1,7 @@
 # tests/test_config.py
 import pytest
 from pathlib import Path
-from micro_harness.config import Config, load_config
+from spark.config import Config, load_config
 
 
 def test_load_default_config():

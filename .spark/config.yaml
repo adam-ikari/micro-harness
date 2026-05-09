@@ -1,0 +1,10 @@
+# Spark Project Config
+# Auto-generated - customize as needed
+
+# Override LLM settings (uncomment to use)
+# llm:
+#   model: "llama3:8b"
+
+# Project-specific settings
+security:
+  trust_current_dir: true

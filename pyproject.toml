@@ -1,5 +1,5 @@
 [project]
-name = "micro-harness"
+name = "spark"
 version = "0.1.0"
 description = "A minimal harness for small models - Tools, Knowledge, Security"
 readme = "README.md"
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-micro-harness = "micro_harness.cli:main"
+spark = "spark.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

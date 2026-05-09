@@ -1,4 +1,4 @@
-# Micro Harness
+# Spark
 
 A minimal **harness** optimized for **small local models** (gemma3:4b, qwen2.5:3b).
 
@@ -12,7 +12,7 @@ Traditional "agent" frameworks try to embed intelligence in code. This is wrong.
 
 **The model provides agency.** The harness provides:
 
-| Component | Description | Micro Harness Implementation |
+| Component | Description | Spark Implementation |
 |-----------|-------------|------------------------------|
 | **Tools** | Capabilities the model can use | `run_shell`, `search` |
 | **Knowledge** | Context and skills | Dynamic prompts, skill loader |
@@ -105,7 +105,7 @@ Works identically on Windows, Linux, macOS.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        MICRO HARNESS                         │
+│                        SPARK                         │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    │
@@ -157,11 +157,11 @@ ollama pull gemma3:4b
 ollama pull qwen2.5:3b
 ```
 
-### 2. Install Micro Harness
+### 2. Install Spark
 
 ```bash
-git clone https://github.com/adam-ikari/micro-harness.git
-cd micro-harness
+git clone https://github.com/adam-ikari/spark.git
+cd spark
 pip install -e .
 ```
 
@@ -171,27 +171,27 @@ pip install -e .
 
 ```bash
 # Start interactive REPL
-micro-harness
+spark
 
 # With options
-micro-harness --mode yolo --lang zh
-micro-harness --trust  # Skip trust prompt
+spark --mode yolo --lang zh
+spark --trust  # Skip trust prompt
 ```
 
 ### Single Execution
 
 ```bash
 # Run once and exit
-micro-harness --once "list files in current directory"
-micro-harness --once "search python tutorials"
-micro-harness -o "read README.md" --mode plan
+spark --once "list files in current directory"
+spark --once "search python tutorials"
+spark -o "read README.md" --mode plan
 ```
 
 ### TUI Mode (Terminal UI)
 
 ```bash
-micro-harness --tui
-micro-harness -t
+spark --tui
+spark -t
 ```
 
 ### CLI Options
@@ -235,7 +235,7 @@ micro-harness -t
 ## Project Structure
 
 ```
-src/micro_harness/
+src/spark/
 ├── agent.py            # Core loop (dumb, just orchestration)
 ├── cli.py              # Entry point
 ├── prompts.py          # Dynamic prompts (knowledge)

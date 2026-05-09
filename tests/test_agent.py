@@ -1,8 +1,8 @@
 # tests/test_agent.py
 import pytest
 from unittest.mock import Mock, patch
-from micro_harness.agent import Agent
-from micro_harness.config import Config, LLMConfig, SecurityConfig, HistoryConfig
+from spark.agent import Agent
+from spark.config import Config, LLMConfig, SecurityConfig, HistoryConfig
 
 
 def test_agent_init():
