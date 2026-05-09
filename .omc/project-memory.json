@@ -19,7 +19,7 @@
   },
   "build": {
     "buildCommand": null,
-    "testCommand": "# Final check\nfind /home/gem/zero-agent -type f \\( -name \"*.py\" -o -name \"*.md\" -o -name \"*.toml\" -o -name \"*.yaml\" -o -name \"*.yml\" -o -name \"*.txt\" -o -name \"*.css\" \\) 2>/dev/null | xargs grep -l \"zero.agent\\|zero-agent\\|zero_agent\\|Zero Agent\\|micro.harness\\|micro-harness\\|micro_harness\\|Micro Harness\" 2>/dev/null | grep -v \".omc/\" | grep -v \".egg-info\" | grep -v \"__pycache__\" | grep -v \".venv\" | grep -v \".pytest_cache\" || echo \"No old names found\"",
+    "testCommand": "PYTHONPATH=src python -m pytest tests/test_builtin.py tests/test_history.py tests/test_config.py tests/test_feedback.py -v --tb=short 2>&1 | tail -30",
     "lintCommand": "ruff check",
     "devCommand": null,
     "scripts": {}
@@ -124,15 +124,15 @@
       "type": "file"
     },
     {
-      "path": "src/zero_agent/security/path_parser.py",
-      "accessCount": 7,
-      "lastAccessed": 1778305933609,
+      "path": "tests/test_builtin.py",
+      "accessCount": 8,
+      "lastAccessed": 1778317614227,
       "type": "file"
     },
     {
-      "path": "tests/test_builtin.py",
+      "path": "src/zero_agent/security/path_parser.py",
       "accessCount": 7,
-      "lastAccessed": 1778311243807,
+      "lastAccessed": 1778305933609,
       "type": "file"
     },
     {

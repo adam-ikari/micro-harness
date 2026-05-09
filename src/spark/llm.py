@@ -50,14 +50,27 @@ class OllamaAdapter:
             # Build minimal parameter schema
             properties = {}
             required = []
-            for pname, pdef in params.items():
+
+            # Handle both formats: {name: def} and {type: object, properties: {name: def}}
+            if params.get("type") == "object" and "properties" in params:
+                props = params["properties"]
+                req = params.get("required", [])
+            else:
+                props = params
+                req = []
+
+            for pname, pdef in props.items():
                 # Only include type and very short description
-                properties[pname] = {
-                    "type": pdef.get("type", "string"),
-                }
-                if pdef.get("description"):
-                    properties[pname]["description"] = pdef["description"][:50]
-                required.append(pname)
+                if isinstance(pdef, dict):
+                    properties[pname] = {
+                        "type": pdef.get("type", "string"),
+                    }
+                    if pdef.get("description"):
+                        properties[pname]["description"] = pdef["description"][:50]
+                else:
+                    properties[pname] = {"type": "string"}
+
+            required = req if req else list(properties.keys())
 
             simplified.append({
                 "type": "function",
