@@ -69,23 +69,23 @@ ToolMessage {
 }
 
 ToolMessage.pending {
-    border-left-color: $warning;
+    border-left: thick $warning;
 }
 
 ToolMessage.running {
-    border-left-color: $primary;
+    border-left: thick $primary;
 }
 
 ToolMessage.success {
-    border-left-color: $success;
+    border-left: thick $success;
 }
 
 ToolMessage.error {
-    border-left-color: $error;
+    border-left: thick $error;
 }
 
 ToolMessage.denied {
-    border-left-color: $error;
+    border-left: thick $error;
 }
 
 ToolMessage .tool-name {

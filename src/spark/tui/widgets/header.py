@@ -13,7 +13,7 @@ class Header(Widget):
         dock: top;
         height: 1;
         background: $primary;
-        color: $text-on-primary;
+        color: $text;
         padding: 0 1;
     }
     """

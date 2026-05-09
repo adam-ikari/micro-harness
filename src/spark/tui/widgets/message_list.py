@@ -33,28 +33,35 @@ class MessageList(ScrollableContainer):
         msg_id = f"user_{self._message_count}"
         self._message_count += 1
         self.mount(UserMessage(content, id=msg_id))
-        self.scroll_to_bottom()
+        self._scroll_to_bottom()
         return msg_id
 
     def add_assistant_message(self, content: str = "") -> str:
-        """添加助手消息。"""
+        """Add assistant message."""
         from spark.tui.widgets.message_item import AssistantMessage
         msg_id = f"assistant_{self._message_count}"
         self._message_count += 1
         msg = AssistantMessage(content, id=msg_id)
         self.mount(msg)
-        self.scroll_to_bottom()
+        self._scroll_to_bottom()
         return msg_id
 
     def add_tool_message(self, tool_name: str, args: dict, status: str = "pending") -> str:
-        """添加工具消息。"""
+        """Add tool message."""
         from spark.tui.widgets.message_item import ToolMessage
         msg_id = f"tool_{self._message_count}"
         self._message_count += 1
         msg = ToolMessage(tool_name, args, status, id=msg_id)
         self.mount(msg)
-        self.scroll_to_bottom()
+        self._scroll_to_bottom()
         return msg_id
+
+    def _scroll_to_bottom(self):
+        """Scroll to bottom of message list."""
+        try:
+            self.scroll_end(animate=False)
+        except Exception:
+            pass
 
     def update_message(self, msg_id: str, content: str):
         """更新消息内容。"""
