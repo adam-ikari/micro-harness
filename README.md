@@ -162,7 +162,7 @@ ollama pull qwen2.5:3b
 ```bash
 git clone https://github.com/adam-ikari/spark.git
 cd spark
-pip install -e .
+uv sync
 ```
 
 ## Development
@@ -175,23 +175,23 @@ git clone https://github.com/adam-ikari/spark.git
 cd spark
 
 # Run directly without installation
-PYTHONPATH=src python -m spark --trust --once "your prompt"
+uv run python -m spark --trust --once "your prompt"
 
 # Run tests
-PYTHONPATH=src python -m pytest tests/ -v
+uv run pytest tests/ -v
 
 # Run specific tests
-PYTHONPATH=src python -m pytest tests/test_builtin.py -v
+uv run pytest tests/test_builtin.py -v
 ```
 
 ### Install for Development
 
 ```bash
-# Install in editable mode with dev dependencies
-pip install -e ".[dev]"
-
-# Or with uv
+# Install dependencies with uv (recommended)
 uv sync
+
+# Or traditional pip
+pip install -e .
 ```
 
 ### Project Structure
