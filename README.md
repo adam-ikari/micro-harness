@@ -244,7 +244,6 @@ spark -t
 | `--once "prompt"` | `-o` | Run once with prompt and exit |
 | `--mode MODE` | `-m` | Mode: plan, ask, yolo |
 | `--lang LANG` | `-l` | Language: en, zh, ja |
-| `--repl` | `-r` | Launch REPL (default is TUI) |
 | `--trust` | | Trust current directory |
 | `--model MODEL` | | Ollama model (e.g., gemma3:4b) |
 | `--host HOST` | | Ollama host (e.g., localhost:11434) |

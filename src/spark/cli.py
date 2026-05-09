@@ -13,12 +13,11 @@ from spark.config import load_config
 @click.option("--once", "-o", "prompt", help="Run once with prompt and exit")
 @click.option("--mode", "-m", type=click.Choice(["plan", "ask", "yolo"]), default="ask", help="Mode: plan, ask, yolo")
 @click.option("--lang", "-l", type=click.Choice(["en", "zh", "ja"]), default="en", help="Language: en, zh, ja")
-@click.option("--repl", "-r", is_flag=True, help="Launch REPL interface (default is TUI)")
 @click.option("--trust", is_flag=True, help="Trust current directory on startup (skip question)")
 @click.option("--memory", type=click.Path(exists=False), help="Memory file path (default: ./.spark/memory.md)")
 @click.option("--model", help="Ollama model name (e.g., gemma3:4b, qwen2.5:3b)")
 @click.option("--host", help="Ollama host address (e.g., localhost:11434)")
-def main(config: str | None, prompt: str | None, mode: str, lang: str, repl: bool, trust: bool, memory: str | None, model: str | None, host: str | None) -> None:
+def main(config: str | None, prompt: str | None, mode: str, lang: str, trust: bool, memory: str | None, model: str | None, host: str | None) -> None:
     """Spark - Minimal CLI agent with MCP, Skills, and security control.
 
     Modes:
@@ -33,7 +32,6 @@ def main(config: str | None, prompt: str | None, mode: str, lang: str, repl: boo
 
     Interfaces:
       TUI:  Default interface
-      REPL: --repl for command-line interface
       CLI:  --once for single execution
 
     Security:
@@ -76,24 +74,6 @@ def main(config: str | None, prompt: str | None, mode: str, lang: str, repl: boo
         agent.history.set_memory_manager(memory_manager)
 
         print(agent.run_once(prompt))
-
-        # Save to memory on exit
-        agent.history.save_to_memory()
-
-    elif repl:
-        # REPL mode
-        from spark.agent import Agent
-        from spark.memory import MemoryManager
-        from spark.llm import OllamaAdapter
-
-        agent = Agent(cfg, mode=mode, lang=lang)
-
-        # Initialize memory manager
-        llm = OllamaAdapter(cfg.llm)
-        memory_manager = MemoryManager(memory_path, llm)
-        agent.history.set_memory_manager(memory_manager)
-
-        agent.start_repl()
 
         # Save to memory on exit
         agent.history.save_to_memory()
