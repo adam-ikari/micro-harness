@@ -15,6 +15,7 @@ class LLMConfig:
     model: str = "gemma4"
     num_ctx: int = 8192
     num_predict: int = 2048
+    api_key: str = ""  # Optional API key for Anthropic-compatible APIs
 
 
 @dataclass

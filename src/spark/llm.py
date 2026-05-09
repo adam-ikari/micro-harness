@@ -1,10 +1,11 @@
 # src/spark/llm.py
-"""Ollama API adapter for spark optimized for small models."""
+"""LLM API adapter for spark - supports Ollama and Anthropic-compatible APIs."""
 
+import re
+import json
 from dataclasses import dataclass
 from typing import Any
-
-import ollama
+import httpx
 
 from spark.config import LLMConfig
 
@@ -17,102 +18,191 @@ class ChatResponse:
 
 
 class OllamaAdapter:
-    """Ollama API adapter optimized for small models."""
+    """LLM adapter supporting Ollama and Anthropic-compatible APIs."""
 
     def __init__(self, config: LLMConfig):
         self.base_url = config.base_url
         self.model = config.model
         self.num_ctx = config.num_ctx
         self.num_predict = config.num_predict
+        self.api_key = config.api_key
         self._client = None
 
+        # Detect API type based on URL or api_key
+        self._is_anthropic = "anthropic" in self.base_url.lower() or bool(self.api_key)
+
     def _get_client(self):
-        """Lazy load Ollama client."""
+        """Lazy load Ollama client (for Ollama APIs)."""
         if self._client is None:
+            import ollama
             self._client = ollama.Client(host=self.base_url)
         return self._client
 
-    def _simplify_tools(self, tools: list[dict]) -> list[dict]:
-        """Simplify tool descriptions for small models.
+    def _get_tool_prompt(self, tools: list[dict]) -> str:
+        """Generate tool usage prompt for text-based tool calling.
 
-        Ultra-minimal format to save tokens:
-        - Description limited to 80 chars
-        - Only required parameters
-        - No examples or long descriptions
+        Instead of using API's tool calling feature, we embed tool
+        instructions in the prompt and parse the output.
         """
-        simplified = []
+        if not tools:
+            return ""
+
+        prompt = "\n\n## Available Tools\n\n"
         for tool in tools:
-            # Extract only essential info
             name = tool.get("name", "")
-            desc = tool.get("description", "")[:80]  # Very short
+            desc = tool.get("description", "")
             params = tool.get("parameters", {})
 
-            # Build minimal parameter schema
-            properties = {}
-            required = []
-
-            # Handle both formats: {name: def} and {type: object, properties: {name: def}}
+            # Get parameter info
             if params.get("type") == "object" and "properties" in params:
                 props = params["properties"]
-                req = params.get("required", [])
             else:
                 props = params
-                req = []
 
-            for pname, pdef in props.items():
-                # Only include type and very short description
-                if isinstance(pdef, dict):
-                    properties[pname] = {
-                        "type": pdef.get("type", "string"),
-                    }
-                    if pdef.get("description"):
-                        properties[pname]["description"] = pdef["description"][:50]
-                else:
-                    properties[pname] = {"type": "string"}
+            param_desc = ", ".join(f"{p}: {props[p].get('type', 'string')}" for p in props)
 
-            required = req if req else list(properties.keys())
+            prompt += f"### {name}\n{desc}\nUsage: `{name}({param_desc})`\n\n"
 
-            simplified.append({
-                "type": "function",
+        prompt += """## Output Format
+
+When you need to use a tool, output in this format:
+```
+<tool name="ToolName">
+{"param": "value"}
+</tool>
+```
+
+You can use multiple tools. After each tool use, you will see the result.
+Think step by step, use tools when needed.
+"""
+        return prompt
+
+    def _parse_tool_calls(self, content: str) -> tuple[str, list[dict] | None]:
+        """Parse tool calls from model output.
+
+        Supports formats:
+        - <tool name="Bash">{"command": "pwd"}</tool>
+        - ```tool:Bash\n{"command": "pwd"}\n```
+        - [Bash: pwd]
+        """
+        tool_calls = []
+        remaining_content = content
+
+        # Pattern 1: <tool name="Name">json</tool>
+        pattern1 = r'<tool\s+name=["\']?(\w+)["\']?\s*>([^<]+)</tool>'
+        for match in re.finditer(pattern1, content):
+            tool_name = match.group(1)
+            try:
+                args = json.loads(match.group(2).strip())
+            except json.JSONDecodeError:
+                args = {"command": match.group(2).strip()}
+            tool_calls.append({"function": {"name": tool_name, "arguments": args}})
+            remaining_content = remaining_content.replace(match.group(0), "")
+
+        # Pattern 2: ```tool:Name\njson\n```
+        pattern2 = r'```tool:(\w+)\n([^`]+)```'
+        for match in re.finditer(pattern2, content):
+            tool_name = match.group(1)
+            try:
+                args = json.loads(match.group(2).strip())
+            except json.JSONDecodeError:
+                args = {"command": match.group(2).strip()}
+            tool_calls.append({"function": {"name": tool_name, "arguments": args}})
+            remaining_content = remaining_content.replace(match.group(0), "")
+
+        # Pattern 3: [ToolName: command] (simple format for small models)
+        pattern3 = r'\[(\w+):\s*([^\]]+)\]'
+        for match in re.finditer(pattern3, content):
+            tool_name = match.group(1)
+            tool_calls.append({
                 "function": {
-                    "name": name,
-                    "description": desc,
-                    "parameters": {
-                        "type": "object",
-                        "properties": properties,
-                        "required": required,
-                    },
-                },
+                    "name": tool_name,
+                    "arguments": {"command": match.group(2).strip()}
+                }
             })
-        return simplified
+            remaining_content = remaining_content.replace(match.group(0), "")
 
-    def estimate_tokens(self, messages: list[dict]) -> int:
-        """Estimate token count for messages.
+        # Clean up remaining content
+        remaining_content = remaining_content.strip()
 
-        Optimized estimation for mixed content:
-        - English: ~0.25 tokens/char
-        - Code: ~0.3 tokens/char
-        - Chinese: ~0.5 tokens/char
-        """
-        total_chars = 0
+        return remaining_content, tool_calls if tool_calls else None
+
+    def _call_anthropic(self, messages: list[dict], tools: list[dict] | None = None) -> ChatResponse:
+        """Call Anthropic-compatible API."""
+        url = self.base_url.rstrip("/")
+        if not url.endswith("/v1/messages"):
+            url = f"{url}/v1/messages"
+
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": self.api_key,
+            "anthropic-version": "2023-06-01",
+        }
+
+        # Convert messages to Anthropic format
+        anthropic_messages = []
+        system = None
         for msg in messages:
+            role = msg.get("role", "user")
             content = msg.get("content", "")
-            total_chars += len(content)
-            # Add message format overhead
-            total_chars += 15
-        return int(total_chars * 0.3)  # Conservative estimate
+            if role == "system":
+                if system:
+                    system += "\n\n" + content
+                else:
+                    system = content
+            else:
+                anthropic_messages.append({
+                    "role": role,
+                    "content": content,
+                })
 
-    def chat(self, messages: list[dict], tools: list[dict] | None = None) -> ChatResponse:
-        """Send chat request.
+        # Add tool prompt to system message (text-based tool calling)
+        if tools:
+            tool_prompt = self._get_tool_prompt(tools)
+            if system:
+                system += tool_prompt
+            else:
+                system = tool_prompt
 
-        Args:
-            messages: Chat message list
-            tools: Available tools list
+        payload = {
+            "model": self.model,
+            "max_tokens": self.num_predict,
+            "messages": anthropic_messages,
+        }
 
-        Returns:
-            ChatResponse: Response with content and tool calls
-        """
+        if system:
+            payload["system"] = system
+
+        with httpx.Client(timeout=120) as client:
+            response = client.post(url, headers=headers, json=payload)
+            response.raise_for_status()
+            data = response.json()
+
+        # Parse response
+        content = ""
+        for block in data.get("content", []):
+            if block.get("type") == "text":
+                content += block.get("text", "")
+
+        # Parse tool calls from content (text-based)
+        remaining, tool_calls = self._parse_tool_calls(content)
+
+        return ChatResponse(content=remaining, tool_calls=tool_calls)
+
+    def _call_ollama(self, messages: list[dict], tools: list[dict] | None = None) -> ChatResponse:
+        """Call Ollama API."""
         client = self._get_client()
+
+        # Add tool prompt for text-based tool calling
+        if tools:
+            tool_prompt = self._get_tool_prompt(tools)
+            # Prepend to first system message or add one
+            for i, msg in enumerate(messages):
+                if msg["role"] == "system":
+                    messages[i]["content"] += tool_prompt
+                    break
+            else:
+                messages.insert(0, {"role": "system", "content": tool_prompt})
 
         options = {
             "num_ctx": self.num_ctx,
@@ -125,67 +215,103 @@ class OllamaAdapter:
             "options": options,
         }
 
-        if tools:
-            kwargs["tools"] = self._simplify_tools(tools)
+        # Try native tool calling first, fall back to text-based
+        try:
+            if tools:
+                # Simplify tools for Ollama
+                simplified = []
+                for tool in tools:
+                    name = tool.get("name", "")
+                    desc = tool.get("description", "")[:80]
+                    params = tool.get("parameters", {})
+                    if params.get("type") == "object" and "properties" in params:
+                        props = params["properties"]
+                    else:
+                        props = params
+                    properties = {}
+                    for pname, pdef in props.items():
+                        if isinstance(pdef, dict):
+                            properties[pname] = {"type": pdef.get("type", "string")}
+                        else:
+                            properties[pname] = {"type": "string"}
+                    simplified.append({
+                        "type": "function",
+                        "function": {
+                            "name": name,
+                            "description": desc,
+                            "parameters": {
+                                "type": "object",
+                                "properties": properties,
+                            },
+                        },
+                    })
+                kwargs["tools"] = simplified
 
-        response = client.chat(**kwargs)
+            response = client.chat(**kwargs)
+            message = response.get("message", {})
+            content = message.get("content", "")
+            tool_calls = message.get("tool_calls", None)
 
-        message = response.get("message", {})
-        content = message.get("content", "")
-        tool_calls = message.get("tool_calls", None)
+            # If no native tool calls, try text-based parsing
+            if not tool_calls:
+                remaining, parsed_calls = self._parse_tool_calls(content)
+                if parsed_calls:
+                    return ChatResponse(content=remaining, tool_calls=parsed_calls)
 
-        return ChatResponse(content=content, tool_calls=tool_calls)
+            return ChatResponse(content=content, tool_calls=tool_calls)
+        except Exception:
+            # Fall back to text-based
+            del kwargs["tools"]
+            response = client.chat(**kwargs)
+            message = response.get("message", {})
+            content = message.get("content", "")
+            remaining, tool_calls = self._parse_tool_calls(content)
+            return ChatResponse(content=remaining, tool_calls=tool_calls)
+
+    def estimate_tokens(self, messages: list[dict]) -> int:
+        """Estimate token count for messages."""
+        total_chars = 0
+        for msg in messages:
+            content = msg.get("content", "")
+            total_chars += len(content)
+            total_chars += 15
+        return int(total_chars * 0.3)
+
+    def chat(self, messages: list[dict], tools: list[dict] | None = None) -> ChatResponse:
+        """Send chat request."""
+        if self._is_anthropic:
+            return self._call_anthropic(messages, tools)
+        else:
+            return self._call_ollama(messages, tools)
 
     def generate_summary(self, messages: list[dict]) -> str:
-        """Generate history summary for compression.
-
-        Optimized for small models with minimal prompt.
-        """
+        """Generate history summary for compression."""
         if not messages:
             return ""
 
-        # Build minimal summary request
         summary_prompt = "Summarize code changes. Keep: files, functions, fixes.\n\n"
-
         for msg in messages:
             role = msg.get("role", "unknown")
             content = msg.get("content", "")
-            # Truncate long messages
             if len(content) > 200:
                 content = content[:200] + "..."
             summary_prompt += f"{role}: {content}\n"
 
-        client = self._get_client()
-        response = client.chat(
-            model=self.model,
-            messages=[{"role": "user", "content": summary_prompt}],
-            options={"num_predict": 200},  # Short summary
-        )
-
-        return response.get("message", {}).get("content", "")
+        response = self.chat(messages=[{"role": "user", "content": summary_prompt}])
+        return response.content
 
     def extract_facts(self, content: str) -> list[str]:
-        """Extract key facts from content.
-
-        Optimized for programming context.
-        """
+        """Extract key facts from content."""
         if not content:
             return []
 
         prompt = f"Extract: file paths, function names, decisions. Or NONE.\n\n{content[:500]}"
+        response = self.chat(messages=[{"role": "user", "content": prompt}])
 
-        client = self._get_client()
-        response = client.chat(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            options={"num_predict": 100},
-        )
-
-        result = response.get("message", {}).get("content", "")
+        result = response.content
         if result.strip().upper() == "NONE":
             return []
 
-        # Parse facts
         facts = []
         for line in result.split("\n"):
             line = line.strip()
@@ -194,4 +320,4 @@ class OllamaAdapter:
             elif line:
                 facts.append(line)
 
-        return facts[:5]  # Limit to 5 facts
+        return facts[:5]

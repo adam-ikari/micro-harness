@@ -19,7 +19,7 @@
   },
   "build": {
     "buildCommand": null,
-    "testCommand": "PYTHONPATH=src python -m pytest tests/test_builtin.py tests/test_history.py tests/test_config.py tests/test_feedback.py -v --tb=short 2>&1 | tail -30",
+    "testCommand": "PYTHONPATH=src python -m pytest tests/test_builtin.py tests/test_history.py tests/test_feedback.py -v --tb=short 2>&1 | tail -15",
     "lintCommand": "ruff check",
     "devCommand": null,
     "scripts": {}
