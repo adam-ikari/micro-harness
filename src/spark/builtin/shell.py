@@ -1,14 +1,15 @@
 # src/spark/builtin/shell.py
-"""Cross-platform command execution using Python.
+"""Shell emulator using Python - cross-platform, no real shell dependency.
 
-All operations use Python's pathlib, shutil, and os modules.
-No shell dependency - consistent behavior across Windows/Linux/macOS.
+Small models only need to learn one tool: run_shell.
+All common commands are simulated using Python APIs.
 """
 
 import logging
 from typing import Any, Optional
+from pathlib import Path
 
-from spark.security.command import CommandParser, RiskLevel
+from spark.security.command import CommandParser
 from spark.fs.operations import FileSystemOperations
 
 logger = logging.getLogger(__name__)
@@ -30,17 +31,23 @@ class ShellResult(dict):
 def get_tool_definition() -> dict[str, Any]:
     """Get tool definition for LLM.
 
+    Compatible with Claude Code tool format.
+
     Returns:
         dict: Tool definition with name, description, parameters
     """
     return {
-        "name": "run_shell",
-        "description": "Execute file system command. Pure Python implementation, cross-platform.",
+        "name": "Bash",
+        "description": "Execute shell command. Cross-platform Python implementation.",
         "parameters": {
-            "command": {
-                "type": "string",
-                "description": "Command to execute (ls, cat, cp, mv, rm, mkdir, touch, find, grep, pwd, which)",
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string",
+                    "description": "Command: ls, cat, head, tail, cp, mv, rm, mkdir, touch, find, grep, pwd, which, search",
+                },
             },
+            "required": ["command"],
         },
     }
 
@@ -54,17 +61,12 @@ def validate_command(command: str) -> tuple[bool, str]:
     Returns:
         tuple: (is_valid, error_message)
     """
-    if not command:
+    if not command or not command.strip():
         return False, "Empty command"
 
-    if not command.strip():
-        return False, "Empty command"
-
-    # Length check
     if len(command) > MAX_COMMAND_LENGTH:
         return False, f"Command too long (max {MAX_COMMAND_LENGTH} chars)"
 
-    # Use command parser for risk assessment
     parser = CommandParser(max_length=MAX_COMMAND_LENGTH)
     is_valid, error = parser.validate(command)
 
@@ -74,15 +76,29 @@ def validate_command(command: str) -> tuple[bool, str]:
     return True, ""
 
 
-def execute_python(command: str) -> ShellResult:
-    """Execute command using Python implementation (cross-platform).
+def execute(command: str) -> ShellResult:
+    """Execute command using Python implementation.
+
+    All operations use Python's pathlib, shutil, and os modules.
+    No shell dependency - consistent behavior across platforms.
 
     Args:
         command: Command to execute
 
     Returns:
-        ShellResult: Result
+        ShellResult: Result with success, stdout, stderr, returncode, error
     """
+    # Validate command
+    is_valid, error = validate_command(command)
+    if not is_valid:
+        return ShellResult({
+            "success": False,
+            "stdout": "",
+            "stderr": "",
+            "returncode": -1,
+            "error": f"Validation error: {error}",
+        })
+
     parser = CommandParser()
     cmd_name, args, meta = parser.parse(command)
 
@@ -102,7 +118,7 @@ def execute_python(command: str) -> ShellResult:
         # File operations using Python
         if cmd_name in ("ls", "dir"):
             all_files = "-a" in args or "--all" in args
-            long_fmt = "-l" in args or "/w" not in args
+            long_fmt = "-l" in args
             path = args[0] if args and not args[0].startswith("-") else "."
             result = fs.list_dir(path, all_files, long_fmt)
             output = "\n".join(result)
@@ -121,7 +137,7 @@ def execute_python(command: str) -> ShellResult:
                 idx = args.index("-n")
                 if idx + 1 < len(args):
                     lines = int(args[idx + 1])
-            path = [a for a in args if not a.startswith("-")][0]
+            path = [a for a in args if not a.startswith("-")][0] if args else "."
             output = fs.read_file(path, lines=lines)
 
         elif cmd_name == "tail":
@@ -130,7 +146,7 @@ def execute_python(command: str) -> ShellResult:
                 idx = args.index("-n")
                 if idx + 1 < len(args):
                     lines = int(args[idx + 1])
-            path = [a for a in args if not a.startswith("-")][0]
+            path = [a for a in args if not a.startswith("-")][0] if args else "."
             output = fs.read_file(path, lines=lines, tail=True)
 
         elif cmd_name in ("cp", "copy"):
@@ -182,7 +198,7 @@ def execute_python(command: str) -> ShellResult:
                 })
             output = fs.touch(args[0])
 
-        elif cmd_name in ("pwd", "cd") and len(args) == 0:
+        elif cmd_name == "pwd":
             output = fs.pwd()
 
         elif cmd_name in ("which", "where"):
@@ -228,13 +244,12 @@ def execute_python(command: str) -> ShellResult:
             output = fs.search(query)
 
         else:
-            # Unknown command for Python implementation
             return ShellResult({
                 "success": False,
                 "stdout": "",
                 "stderr": "",
                 "returncode": -1,
-                "error": f"Command '{cmd_name}' not supported. Available: ls, cat, cp, mv, rm, mkdir, touch, find, grep, pwd, which, search",
+                "error": f"Command '{cmd_name}' not supported. Available: ls, cat, head, tail, cp, mv, rm, mkdir, touch, find, grep, pwd, which, search",
             })
 
         # Check if output is an error
@@ -263,30 +278,3 @@ def execute_python(command: str) -> ShellResult:
             "returncode": -1,
             "error": str(e),
         })
-
-
-def execute(command: str) -> ShellResult:
-    """Execute command using Python implementation (cross-platform).
-
-    All operations use Python's pathlib, shutil, and os modules.
-    No shell dependency - consistent behavior across platforms.
-
-    Args:
-        command: Command to execute
-
-    Returns:
-        ShellResult: Result with success, stdout, stderr, returncode, error
-    """
-    # Validate command
-    is_valid, error = validate_command(command)
-    if not is_valid:
-        return ShellResult({
-            "success": False,
-            "stdout": "",
-            "stderr": "",
-            "returncode": -1,
-            "error": f"Validation error: {error}",
-        })
-
-    # Always use Python implementation for cross-platform consistency
-    return execute_python(command)

@@ -1,5 +1,5 @@
 # tests/test_builtin.py
-"""Tests for cross-platform shell execution."""
+"""Tests for shell emulator."""
 import pytest
 from spark.builtin.shell import execute, get_tool_definition
 
@@ -8,13 +8,13 @@ def test_get_tool_definition():
     """Test tool definition."""
     tool_def = get_tool_definition()
 
-    assert tool_def["name"] == "run_shell"
+    assert tool_def["name"] == "Bash"
     assert "description" in tool_def
     assert "parameters" in tool_def
 
 
 def test_shell_execute_pwd():
-    """Test pwd command (pure Python)."""
+    """Test pwd command."""
     result = execute("pwd")
 
     assert result["success"] is True
@@ -22,15 +22,14 @@ def test_shell_execute_pwd():
 
 
 def test_shell_execute_ls():
-    """Test ls command (pure Python)."""
+    """Test ls command."""
     result = execute("ls .")
 
     assert result["success"] is True
-    # Should list current directory
 
 
 def test_shell_execute_cat():
-    """Test cat command (pure Python)."""
+    """Test cat command."""
     result = execute("cat pyproject.toml")
 
     assert result["success"] is True
@@ -54,7 +53,7 @@ def test_shell_execute_empty():
 
 
 def test_shell_execute_which():
-    """Test which command (pure Python)."""
+    """Test which command."""
     result = execute("which python")
 
     assert result["success"] is True

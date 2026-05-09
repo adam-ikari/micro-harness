@@ -14,10 +14,11 @@ from spark.history import HistoryManager
 from spark.mcp.client import MCPClient
 from spark.skills.loader import SkillLoader
 from spark.security import SecurityManager, Decision, PathTrustManager, PathParser, CommandParser
-from spark.builtin.shell import execute as shell_execute
+from spark.builtin.shell import execute as shell_execute, get_tool_definition
 
 from spark.tui.widgets import Header, MessageList, InputBox, Footer
 from spark.tui.screens import PermissionScreen, TrustDialog
+from textual.widgets import Input
 
 
 # Multi-language text
@@ -157,7 +158,7 @@ class ZeroAgentApp(App):
         self.history.clear()
         self._message_list.add_assistant_message(self.t("cleared"))
 
-    def on_input_submitted(self, event: InputBox.Submitted) -> None:
+    def on_input_submitted(self, event: Input.Submitted) -> None:
         """Handle input submission."""
         if self._processing:
             return
@@ -280,14 +281,7 @@ Shortcuts:
 
     def _get_all_tools(self) -> list[dict]:
         """Get all tools."""
-        return [{
-            "name": "run_shell",
-            "description": "Execute shell command",
-            "parameters": {
-                "command": {"type": "string", "description": "Command to execute"},
-                "timeout": {"type": "integer", "description": "Timeout in seconds"},
-            },
-        }]
+        return [get_tool_definition()]
 
     def _process_response(self, response) -> str:
         """Process LLM response."""
@@ -304,7 +298,7 @@ Shortcuts:
     def _handle_tool_call(self, tool_name: str, args: dict) -> str:
         """Handle tool call."""
         # Path trust check for shell commands
-        if tool_name == "run_shell":
+        if tool_name == "Bash":
             command = args.get("command", "")
             paths = self.path_parser.parse(command)
 
@@ -318,10 +312,9 @@ Shortcuts:
 
                 if decision == Decision.CONFIRM:
                     # For TUI, we'll add to trusted and continue
-                    # In a full implementation, this would show a dialog
                     self.path_trust.add_trusted_path(path)
 
-        # Original security check
+        # Security check
         decision = self._get_tool_decision(tool_name, args)
 
         if decision == Decision.DENY:
@@ -335,8 +328,8 @@ Shortcuts:
             if not confirmed:
                 return self.t("error_cancelled")
 
-        if tool_name == "run_shell":
-            result = shell_execute(args.get("command", ""), args.get("timeout", 30))
+        if tool_name == "Bash":
+            result = shell_execute(args.get("command", ""))
             return result["stdout"] if result["success"] else f"Error: {result['error']}"
 
         return f"Error: Unknown tool '{tool_name}'"

@@ -216,7 +216,7 @@ class Agent:
     def _handle_tool_call(self, tool_name: str, args: dict) -> str:
         """Handle tool call."""
         # Path trust check for shell commands
-        if tool_name == "run_shell":
+        if tool_name == "Bash":
             command = args.get("command", "")
             paths = self.path_parser.parse(command)
 
@@ -241,11 +241,10 @@ class Agent:
                     # Add to trusted for this session
                     self.path_trust.add_trusted_path(path)
 
-        # Original security check
+        # Security check
         decision = self._get_tool_decision(tool_name, args)
 
         if decision == Decision.DENY:
-            # Plan 模式下写入命令被拒绝时，询问是否切换模式
             if self.mode == "plan" and self._is_write_command(args.get("command", "")):
                 switch = input(self.t("write_blocked"))
                 if switch.lower() == "y":
@@ -262,7 +261,7 @@ class Agent:
             if confirm.lower() != "y":
                 return self.hallucination_preventer.format_denied(tool_name, self.t("error_cancelled"))
 
-        if tool_name == "run_shell":
+        if tool_name == "Bash":
             result = shell_execute(args.get("command", ""))
             # Use hallucination preventer for structured feedback
             formatted = self.hallucination_preventer.format_result(tool_name, result)
