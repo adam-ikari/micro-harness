@@ -38,8 +38,8 @@ DANGEROUS_PATTERNS = {
 
 # Write command patterns (detected by command name)
 WRITE_COMMANDS = {
-    # File write
-    "cat", "tee", "echo", "printf",
+    # File write (with redirect)
+    "tee",
     # File operations
     "mv", "cp", "rm", "rmdir", "mkdir", "touch", "truncate",
     # Permissions
@@ -52,16 +52,24 @@ WRITE_COMMANDS = {
     "curl-post", "curl-put", "curl-delete", "wget",
 }
 
-# Safe commands (read-only)
+# Safe commands (read-only, no code execution)
 SAFE_COMMANDS = {
-    "ls", "dir", "cat" , "head", "tail", "less", "more",
+    # File listing
+    "ls", "dir", "head", "tail", "less", "more",
+    # Search
     "grep", "egrep", "fgrep", "rg", "ag",
+    # File location
     "find", "locate", "which", "whereis",
+    # System info
     "pwd", "whoami", "id", "uname", "hostname",
+    # Version control (read operations)
     "git", "svn", "hg",
-    "python", "python3", "node", "ruby", "perl",
-    "echo", "printf",  # These are safe without redirect
+    # File content (read-only)
+    "cat",
 }
+
+# Note: echo, printf, python, node, ruby, perl are NOT in SAFE_COMMANDS
+# because they can execute arbitrary code or write files
 
 
 class CommandParser:

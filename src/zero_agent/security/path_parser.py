@@ -1,9 +1,12 @@
 # src/zero_agent/security/path_parser.py
 """Parse paths from shell commands."""
 
+import logging
 import os
 import re
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 
 class PathParseCache:
@@ -186,5 +189,6 @@ If no paths found, output: NONE"""
                             results.append((path, operation))
 
             return results
-        except Exception:
+        except Exception as e:
+            logger.warning(f"LLM path parsing failed: {e}")
             return []

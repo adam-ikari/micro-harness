@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-09T02:56:20.295Z",
+  "updatedAt": "2026-05-09T05:33:14.059Z",
   "missions": [
     {
       "id": "session:f12b7bbc-df9b-46f5-b627-80a067c7bdd6:none",
@@ -7,15 +7,15 @@
       "name": "none",
       "objective": "Session mission",
       "createdAt": "2026-05-08T10:07:20.374Z",
-      "updatedAt": "2026-05-09T02:56:20.295Z",
+      "updatedAt": "2026-05-09T05:33:14.059Z",
       "status": "running",
-      "workerCount": 4,
+      "workerCount": 5,
       "taskCounts": {
-        "total": 4,
+        "total": 5,
         "pending": 0,
         "blocked": 0,
         "inProgress": 1,
-        "completed": 3,
+        "completed": 4,
         "failed": 0
       },
       "agents": [
@@ -58,17 +58,19 @@
           "latestUpdate": null,
           "completedSummary": null,
           "updatedAt": "2026-05-09T02:56:20.295Z"
+        },
+        {
+          "name": "superpowers:code-reviewer:a91eff0",
+          "role": "superpowers:code-reviewer",
+          "ownership": "a91eff09c79b244cf",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-05-09T05:33:14.059Z"
         }
       ],
       "timeline": [
-        {
-          "id": "session-start:a2f2a34ad7302bf85:2026-05-08T16:01:16.298Z",
-          "at": "2026-05-08T16:01:16.298Z",
-          "kind": "update",
-          "agent": "superpowers:code-reviewer:a2f2a34",
-          "detail": "started superpowers:code-reviewer:a2f2a34",
-          "sourceKey": "session-start:a2f2a34ad7302bf85"
-        },
         {
           "id": "session-stop:a2f2a34ad7302bf85:2026-05-08T16:02:40.955Z",
           "at": "2026-05-08T16:02:40.955Z",
@@ -84,6 +86,22 @@
           "agent": "Explore:aae7af8",
           "detail": "started Explore:aae7af8",
           "sourceKey": "session-start:aae7af804c205fc31"
+        },
+        {
+          "id": "session-start:a91eff09c79b244cf:2026-05-09T05:32:08.641Z",
+          "at": "2026-05-09T05:32:08.641Z",
+          "kind": "update",
+          "agent": "superpowers:code-reviewer:a91eff0",
+          "detail": "started superpowers:code-reviewer:a91eff0",
+          "sourceKey": "session-start:a91eff09c79b244cf"
+        },
+        {
+          "id": "session-stop:a91eff09c79b244cf:2026-05-09T05:33:14.059Z",
+          "at": "2026-05-09T05:33:14.059Z",
+          "kind": "completion",
+          "agent": "superpowers:code-reviewer:a91eff0",
+          "detail": "completed",
+          "sourceKey": "session-stop:a91eff09c79b244cf"
         }
       ]
     }

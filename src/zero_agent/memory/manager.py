@@ -1,11 +1,15 @@
 # src/zero_agent/memory/manager.py
 """Memory management with Markdown persistence optimized for small models."""
 
+import logging
 import os
 import re
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 # Token limits for small models
 MAX_INDEX_TOKENS = 200  # ~800 chars
@@ -198,8 +202,8 @@ If all entries are unique, output them unchanged."""
                 flags=re.DOTALL
             )
             self.memory_path.write_text(new_content)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Memory deduplication failed: {e}")
 
     def save_session(self, session_summary: str, important_facts: list[str] = None):
         """Save session summary on exit with linked structure.
@@ -269,7 +273,8 @@ If nothing important, output: NONE"""
                     facts.append(line)
 
             return facts
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Failed to extract important content: {e}")
             return []
 
     def get_context_for_llm(self, include_details: bool = False,
@@ -426,19 +431,6 @@ Answer only YES or NO."""
         try:
             response = self.llm.chat([{"role": "user", "content": prompt}])
             return "YES" in response.content.upper()
-        except Exception:
+        except Exception as e:
+            logger.warning(f"LLM relevance check failed: {e}")
             return False
-
-    def get_relevant_context(self, user_input: str) -> str:
-        """Get memory context relevant to user input.
-
-        Args:
-            user_input: User's input text
-
-        Returns:
-            str: Relevant memory context
-        """
-        if not self.should_load_memory(user_input):
-            return ""
-
-        return self.get_context_for_llm(include_details=False)

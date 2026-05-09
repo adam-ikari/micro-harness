@@ -19,7 +19,7 @@
   },
   "build": {
     "buildCommand": null,
-    "testCommand": "PYTHONPATH=src python -m pytest tests/test_builtin.py tests/test_history.py -v --tb=short 2>&1",
+    "testCommand": "PYTHONPATH=src python -m pytest tests/test_builtin.py tests/test_history.py tests/test_config.py -v --tb=short 2>&1",
     "lintCommand": "ruff check",
     "devCommand": null,
     "scripts": {}
@@ -41,8 +41,14 @@
   "hotPaths": [
     {
       "path": "src/zero_agent/agent.py",
-      "accessCount": 64,
-      "lastAccessed": 1778301274924,
+      "accessCount": 65,
+      "lastAccessed": 1778304732341,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/memory/manager.py",
+      "accessCount": 39,
+      "lastAccessed": 1778306003317,
       "type": "file"
     },
     {
@@ -52,33 +58,27 @@
       "type": "file"
     },
     {
-      "path": "src/zero_agent/memory/manager.py",
-      "accessCount": 27,
-      "lastAccessed": 1778301507223,
-      "type": "file"
-    },
-    {
       "path": "src/zero_agent/mcp/client.py",
-      "accessCount": 16,
-      "lastAccessed": 1778292690540,
-      "type": "file"
-    },
-    {
-      "path": "src/zero_agent/security/__init__.py",
-      "accessCount": 15,
-      "lastAccessed": 1778292981031,
-      "type": "file"
-    },
-    {
-      "path": "src/zero_agent/llm.py",
-      "accessCount": 15,
-      "lastAccessed": 1778301364026,
+      "accessCount": 17,
+      "lastAccessed": 1778304756075,
       "type": "file"
     },
     {
       "path": "src/zero_agent/history.py",
-      "accessCount": 15,
-      "lastAccessed": 1778301539799,
+      "accessCount": 16,
+      "lastAccessed": 1778304732320,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/llm.py",
+      "accessCount": 16,
+      "lastAccessed": 1778304732401,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/security/__init__.py",
+      "accessCount": 16,
+      "lastAccessed": 1778304742583,
       "type": "file"
     },
     {
@@ -95,8 +95,8 @@
     },
     {
       "path": "src/zero_agent/config.py",
-      "accessCount": 10,
-      "lastAccessed": 1778256092066,
+      "accessCount": 11,
+      "lastAccessed": 1778304737077,
       "type": "file"
     },
     {
@@ -113,14 +113,32 @@
     },
     {
       "path": "src/zero_agent/security/permission.py",
-      "accessCount": 7,
-      "lastAccessed": 1778292943458,
+      "accessCount": 8,
+      "lastAccessed": 1778304749851,
       "type": "file"
     },
     {
       "path": "pyproject.toml",
-      "accessCount": 6,
-      "lastAccessed": 1778238905250,
+      "accessCount": 7,
+      "lastAccessed": 1778304756088,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/security/path_parser.py",
+      "accessCount": 7,
+      "lastAccessed": 1778305933609,
+      "type": "file"
+    },
+    {
+      "path": "tests/test_config.py",
+      "accessCount": 5,
+      "lastAccessed": 1778303918163,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/security/path_trust.py",
+      "accessCount": 5,
+      "lastAccessed": 1778304737156,
       "type": "file"
     },
     {
@@ -130,9 +148,9 @@
       "type": "file"
     },
     {
-      "path": "src/zero_agent/security/path_trust.py",
+      "path": "src/zero_agent/security/risk_detector.py",
       "accessCount": 4,
-      "lastAccessed": 1778292589327,
+      "lastAccessed": 1778304749822,
       "type": "file"
     },
     {
@@ -151,12 +169,6 @@
       "path": "tests/test_builtin.py",
       "accessCount": 3,
       "lastAccessed": 1778256029142,
-      "type": "file"
-    },
-    {
-      "path": "src/zero_agent/security/risk_detector.py",
-      "accessCount": 3,
-      "lastAccessed": 1778256092049,
       "type": "file"
     },
     {
@@ -208,9 +220,15 @@
       "type": "file"
     },
     {
-      "path": "src/zero_agent/security/path_parser.py",
+      "path": "tests/test_security.py",
       "accessCount": 2,
-      "lastAccessed": 1778256080918,
+      "lastAccessed": 1778304749869,
+      "type": "file"
+    },
+    {
+      "path": "tests/test_history.py",
+      "accessCount": 2,
+      "lastAccessed": 1778304749874,
       "type": "file"
     },
     {
@@ -220,27 +238,9 @@
       "type": "file"
     },
     {
-      "path": "tests/test_config.py",
-      "accessCount": 1,
-      "lastAccessed": 1778235214640,
-      "type": "file"
-    },
-    {
       "path": "tests/test_llm.py",
       "accessCount": 1,
       "lastAccessed": 1778235392136,
-      "type": "file"
-    },
-    {
-      "path": "tests/test_history.py",
-      "accessCount": 1,
-      "lastAccessed": 1778235427138,
-      "type": "file"
-    },
-    {
-      "path": "tests/test_security.py",
-      "accessCount": 1,
-      "lastAccessed": 1778235468238,
       "type": "file"
     },
     {
