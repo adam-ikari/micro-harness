@@ -64,6 +64,12 @@
       "type": "file"
     },
     {
+      "path": "README.md",
+      "accessCount": 19,
+      "lastAccessed": 1778315994269,
+      "type": "file"
+    },
+    {
       "path": "src/zero_agent/mcp/client.py",
       "accessCount": 17,
       "lastAccessed": 1778304756075,
@@ -88,12 +94,6 @@
       "type": "file"
     },
     {
-      "path": "README.md",
-      "accessCount": 15,
-      "lastAccessed": 1778314316239,
-      "type": "file"
-    },
-    {
       "path": "src/zero_agent/cli.py",
       "accessCount": 13,
       "lastAccessed": 1778251910196,
@@ -107,8 +107,8 @@
     },
     {
       "path": "pyproject.toml",
-      "accessCount": 9,
-      "lastAccessed": 1778311021424,
+      "accessCount": 11,
+      "lastAccessed": 1778315520799,
       "type": "file"
     },
     {
