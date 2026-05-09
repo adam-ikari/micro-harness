@@ -1,0 +1,344 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1778232997446,
+  "projectRoot": "/home/gem/zero-agent",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Python",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "pyproject.toml"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": "PYTHONPATH=src python -m pytest tests/test_builtin.py tests/test_history.py -v --tb=short 2>&1",
+    "lintCommand": "ruff check",
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {},
+  "hotPaths": [
+    {
+      "path": "src/zero_agent/agent.py",
+      "accessCount": 60,
+      "lastAccessed": 1778292758458,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/tui/app.py",
+      "accessCount": 32,
+      "lastAccessed": 1778292871004,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/memory/manager.py",
+      "accessCount": 22,
+      "lastAccessed": 1778256080863,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/mcp/client.py",
+      "accessCount": 16,
+      "lastAccessed": 1778292690540,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/security/__init__.py",
+      "accessCount": 15,
+      "lastAccessed": 1778292981031,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/cli.py",
+      "accessCount": 13,
+      "lastAccessed": 1778251910196,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/llm.py",
+      "accessCount": 12,
+      "lastAccessed": 1778244276178,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/history.py",
+      "accessCount": 12,
+      "lastAccessed": 1778248919361,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/builtin/shell.py",
+      "accessCount": 12,
+      "lastAccessed": 1778292641224,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/config.py",
+      "accessCount": 10,
+      "lastAccessed": 1778256092066,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 9,
+      "lastAccessed": 1778239615399,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/skills/loader.py",
+      "accessCount": 7,
+      "lastAccessed": 1778249400259,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/security/permission.py",
+      "accessCount": 7,
+      "lastAccessed": 1778292943458,
+      "type": "file"
+    },
+    {
+      "path": "pyproject.toml",
+      "accessCount": 6,
+      "lastAccessed": 1778238905250,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/tui/widgets/message_item.py",
+      "accessCount": 4,
+      "lastAccessed": 1778244230562,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/security/path_trust.py",
+      "accessCount": 4,
+      "lastAccessed": 1778292589327,
+      "type": "file"
+    },
+    {
+      "path": "docs/claude-code-tui-design.md",
+      "accessCount": 3,
+      "lastAccessed": 1778239332938,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/tui/screens/permission.py",
+      "accessCount": 3,
+      "lastAccessed": 1778244230255,
+      "type": "file"
+    },
+    {
+      "path": "tests/test_builtin.py",
+      "accessCount": 3,
+      "lastAccessed": 1778256029142,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/security/risk_detector.py",
+      "accessCount": 3,
+      "lastAccessed": 1778256092049,
+      "type": "file"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-05-08-zero-agent-design.md",
+      "accessCount": 2,
+      "lastAccessed": 1778234252429,
+      "type": "file"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-05-08-zero-agent-plan.md",
+      "accessCount": 2,
+      "lastAccessed": 1778234789702,
+      "type": "file"
+    },
+    {
+      "path": "main.py",
+      "accessCount": 2,
+      "lastAccessed": 1778238905367,
+      "type": "file"
+    },
+    {
+      "path": "config.yaml",
+      "accessCount": 2,
+      "lastAccessed": 1778238910337,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/mcp/types.py",
+      "accessCount": 2,
+      "lastAccessed": 1778238927824,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/tui/widgets/footer.py",
+      "accessCount": 2,
+      "lastAccessed": 1778244340904,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/tui/widgets/header.py",
+      "accessCount": 2,
+      "lastAccessed": 1778244340932,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/tui/screens/__init__.py",
+      "accessCount": 2,
+      "lastAccessed": 1778254561366,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/security/path_parser.py",
+      "accessCount": 2,
+      "lastAccessed": 1778256080918,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/__init__.py",
+      "accessCount": 1,
+      "lastAccessed": 1778235078067,
+      "type": "file"
+    },
+    {
+      "path": "tests/test_config.py",
+      "accessCount": 1,
+      "lastAccessed": 1778235214640,
+      "type": "file"
+    },
+    {
+      "path": "tests/test_llm.py",
+      "accessCount": 1,
+      "lastAccessed": 1778235392136,
+      "type": "file"
+    },
+    {
+      "path": "tests/test_history.py",
+      "accessCount": 1,
+      "lastAccessed": 1778235427138,
+      "type": "file"
+    },
+    {
+      "path": "tests/test_security.py",
+      "accessCount": 1,
+      "lastAccessed": 1778235468238,
+      "type": "file"
+    },
+    {
+      "path": "tests/test_skills.py",
+      "accessCount": 1,
+      "lastAccessed": 1778235513417,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/skills/__init__.py",
+      "accessCount": 1,
+      "lastAccessed": 1778235513588,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/builtin/__init__.py",
+      "accessCount": 1,
+      "lastAccessed": 1778235552595,
+      "type": "file"
+    },
+    {
+      "path": "tests/test_mcp.py",
+      "accessCount": 1,
+      "lastAccessed": 1778235605038,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/mcp/__init__.py",
+      "accessCount": 1,
+      "lastAccessed": 1778235605207,
+      "type": "file"
+    },
+    {
+      "path": "tests/test_agent.py",
+      "accessCount": 1,
+      "lastAccessed": 1778235683054,
+      "type": "file"
+    },
+    {
+      "path": "tests/test_integration.py",
+      "accessCount": 1,
+      "lastAccessed": 1778235716042,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/tui/__init__.py",
+      "accessCount": 1,
+      "lastAccessed": 1778239356971,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/tui/widgets/__init__.py",
+      "accessCount": 1,
+      "lastAccessed": 1778239357128,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/tui/styles/app.css",
+      "accessCount": 1,
+      "lastAccessed": 1778239357306,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/tui/widgets/message_list.py",
+      "accessCount": 1,
+      "lastAccessed": 1778239444321,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/tui/widgets/input_box.py",
+      "accessCount": 1,
+      "lastAccessed": 1778239444644,
+      "type": "file"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-05-08-zero-agent-enhancement.md",
+      "accessCount": 1,
+      "lastAccessed": 1778247546826,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/memory/__init__.py",
+      "accessCount": 1,
+      "lastAccessed": 1778248860908,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/skills/matcher.py",
+      "accessCount": 1,
+      "lastAccessed": 1778249448803,
+      "type": "file"
+    },
+    {
+      "path": "src/zero_agent/tui/screens/trust_dialog.py",
+      "accessCount": 1,
+      "lastAccessed": 1778254536747,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

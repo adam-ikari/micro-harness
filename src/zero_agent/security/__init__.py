@@ -1,20 +1,12 @@
 # src/zero_agent/security/__init__.py
 """Security module for zero-agent."""
 
-from enum import Enum
-
-from zero_agent.security.permission import PermissionManager
+from zero_agent.security.permission import PermissionManager, Decision
 from zero_agent.security.risk_detector import RiskDetector
 from zero_agent.security.path_trust import PathTrustManager
 from zero_agent.security.path_parser import PathParser
+from zero_agent.security.command import CommandParser, RiskLevel
 from zero_agent.config import SecurityConfig
-
-
-class Decision(Enum):
-    """Security decision result."""
-    ALLOW = "allow"
-    DENY = "deny"
-    CONFIRM = "confirm"
 
 
 class SecurityManager:
@@ -61,4 +53,6 @@ __all__ = [
     "RiskDetector",
     "PathTrustManager",
     "PathParser",
+    "CommandParser",
+    "RiskLevel",
 ]

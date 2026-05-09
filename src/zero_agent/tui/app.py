@@ -13,7 +13,7 @@ from zero_agent.llm import OllamaAdapter
 from zero_agent.history import HistoryManager
 from zero_agent.mcp.client import MCPClient
 from zero_agent.skills.loader import SkillLoader
-from zero_agent.security import SecurityManager, Decision, PathTrustManager, PathParser
+from zero_agent.security import SecurityManager, Decision, PathTrustManager, PathParser, CommandParser
 from zero_agent.builtin.shell import execute as shell_execute
 
 from zero_agent.tui.widgets import Header, MessageList, InputBox, Footer
@@ -61,15 +61,6 @@ I18N = {
 MODES = ["plan", "ask", "yolo"]
 LANGUAGES = ["en", "zh", "ja"]
 
-# Write commands blocked in plan mode
-WRITE_COMMANDS = [
-    ">", ">>", "echo ", "cat >", "cat >>", "tee ",
-    "mv ", "cp ", "rm ", "mkdir ", "touch ",
-    "chmod ", "chown ", "git push", "git commit",
-    "curl -X POST", "curl -X PUT", "curl -X DELETE",
-    "wget ", "pip install", "npm install", "apt ", "yum ",
-]
-
 
 class ZeroAgentApp(App):
     """Zero Agent TUI application."""
@@ -102,6 +93,9 @@ class ZeroAgentApp(App):
         # Path trust system
         self.path_trust = PathTrustManager(trust_current_dir=config.security.trust_current_dir)
         self.path_parser = PathParser(self.llm)
+
+        # Command parser for security
+        self.cmd_parser = CommandParser()
 
         self.skills.load_all()
         self.model = self.config.llm.model
@@ -364,11 +358,8 @@ Shortcuts:
             return self.security.check(tool_name, args)
 
     def _is_write_command(self, command: str) -> bool:
-        """Check if command is a write operation."""
-        for write_cmd in WRITE_COMMANDS:
-            if write_cmd in command:
-                return True
-        return False
+        """Check if command is a write operation using CommandParser."""
+        return self.cmd_parser.is_write_operation(command)
 
     def _show_permission_dialog(self, tool_name: str, args: dict) -> bool:
         """Show permission confirmation dialog (sync version)."""

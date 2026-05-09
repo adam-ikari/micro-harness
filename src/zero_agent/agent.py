@@ -12,7 +12,7 @@ from zero_agent.history import HistoryManager
 from zero_agent.llm import OllamaAdapter
 from zero_agent.mcp.client import MCPClient
 from zero_agent.skills.loader import SkillLoader
-from zero_agent.security import SecurityManager, Decision, PathTrustManager, PathParser
+from zero_agent.security import SecurityManager, Decision, PathTrustManager, PathParser, CommandParser
 from zero_agent.builtin.shell import execute as shell_execute, get_tool_definition
 
 
@@ -107,31 +107,6 @@ MODE_PROMPTS = {
     "yolo": "[yolo] ",
 }
 
-# Plan 模式禁止的写入命令
-WRITE_COMMANDS = [
-    ">", ">>",           # Redirect write
-    "echo ",             # echo 写入
-    "cat >", "cat >>",   # cat 写入
-    "tee ",              # tee 写入
-    "mv ",               # Move
-    "cp ",               # Copy
-    "rm ",               # Delete
-    "mkdir ",            # Create directory
-    "touch ",            # Create file
-    "chmod ",            # Change permissions
-    "chown ",            # Change owner
-    "git push",          # Push
-    "git commit",        # Commit
-    "curl -X POST",      # POST 请求
-    "curl -X PUT",       # PUT 请求
-    "curl -X DELETE",    # DELETE 请求
-    "wget ",             # Download
-    "pip install",       # Install package
-    "npm install",       # Install package
-    "apt ",              # System package manager
-    "yum ",              # System package manager
-]
-
 
 class Agent:
     """Zero Agent core."""
@@ -150,6 +125,9 @@ class Agent:
         # Path trust system
         self.path_trust = PathTrustManager(trust_current_dir=config.security.trust_current_dir)
         self.path_parser = PathParser(self.llm)
+
+        # Command parser for security
+        self.cmd_parser = CommandParser()
 
         # Ask about trusting current dir on startup
         if config.security.ask_trust_on_startup and not config.security.trust_current_dir:
@@ -263,11 +241,8 @@ class Agent:
             return self.security.check(tool_name, args)
 
     def _is_write_command(self, command: str) -> bool:
-        """Check if command is a write operation."""
-        for write_cmd in WRITE_COMMANDS:
-            if write_cmd in command:
-                return True
-        return False
+        """Check if command is a write operation using CommandParser."""
+        return self.cmd_parser.is_write_operation(command)
 
     def _cycle_mode(self) -> None:
         """Cycle modes: plan -> ask -> yolo -> plan"""

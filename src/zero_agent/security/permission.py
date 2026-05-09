@@ -1,8 +1,16 @@
 # src/zero_agent/security/permission.py
 """Permission management for tool execution."""
 
+from enum import Enum
+
 from zero_agent.config import SecurityConfig
-from zero_agent.security import Decision
+
+
+class Decision(Enum):
+    """Security decision result."""
+    ALLOW = "allow"
+    DENY = "deny"
+    CONFIRM = "confirm"
 
 
 class PermissionManager:

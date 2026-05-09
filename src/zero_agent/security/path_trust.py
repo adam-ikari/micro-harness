@@ -2,9 +2,12 @@
 """Path trust management for zero-agent."""
 
 import os
+import logging
 from typing import Optional
 
 from zero_agent.security import Decision
+
+logger = logging.getLogger(__name__)
 
 
 class PathTrustManager:
@@ -12,15 +15,53 @@ class PathTrustManager:
 
     Only current directory can be trusted.
     Trust is not persisted - asked each session.
+    Uses realpath() to resolve symlinks and prevent traversal attacks.
     """
 
     def __init__(self, trust_current_dir: bool = False):
         self.trusted_paths: set[str] = set()
-        self.current_dir = os.getcwd()
+        self.current_dir = self._safe_realpath(os.getcwd())
         self._trust_current_dir = trust_current_dir
 
         if trust_current_dir:
             self.trusted_paths.add(self.current_dir)
+
+    def _safe_realpath(self, path: str) -> str:
+        """Safely resolve path with realpath.
+
+        Args:
+            path: Path to resolve
+
+        Returns:
+            str: Resolved canonical path
+        """
+        try:
+            # Normalize and resolve symlinks
+            return os.path.normpath(os.path.realpath(path))
+        except (OSError, ValueError) as e:
+            logger.warning(f"Failed to resolve path {path}: {e}")
+            return os.path.abspath(path)
+
+    def _canonicalize(self, path: str) -> Optional[str]:
+        """Canonicalize a path for comparison.
+
+        Args:
+            path: Path to canonicalize
+
+        Returns:
+            Optional[str]: Canonical path or None if invalid
+        """
+        if not path:
+            return None
+
+        try:
+            # Expand user home directory
+            expanded = os.path.expanduser(path)
+            # Resolve to absolute path and follow symlinks
+            return self._safe_realpath(expanded)
+        except (OSError, ValueError) as e:
+            logger.warning(f"Invalid path {path}: {e}")
+            return None
 
     def ask_trust_current_dir(self) -> bool:
         """Ask user if they trust current directory.
@@ -42,22 +83,37 @@ class PathTrustManager:
     def is_trusted(self, path: str) -> bool:
         """Check if path is trusted.
 
+        Uses realpath() to resolve symlinks and prevent:
+        - Symlink attacks (symlink inside trusted dir pointing outside)
+        - Path traversal (../ sequences)
+        - Race conditions (TOCTOU) by canonicalizing at check time
+
         Args:
             path: Path to check
 
         Returns:
             bool: True if path is trusted
         """
-        try:
-            abs_path = os.path.abspath(path)
-            for trusted in self.trusted_paths:
-                if abs_path.startswith(trusted):
-                    return True
-                # Check if path is under trusted directory
-                if abs_path.startswith(trusted + os.sep):
-                    return True
-        except Exception:
-            pass
+        canonical_path = self._canonicalize(path)
+        if not canonical_path:
+            return False
+
+        for trusted in self.trusted_paths:
+            # Canonicalize trusted path too
+            canonical_trusted = self._canonicalize(trusted)
+            if not canonical_trusted:
+                continue
+
+            # Check if path is exactly the trusted path
+            if canonical_path == canonical_trusted:
+                return True
+
+            # Check if path is under trusted directory
+            # Use os.sep to ensure we're matching directory boundaries
+            prefix = canonical_trusted + os.sep
+            if canonical_path.startswith(prefix):
+                return True
+
         return False
 
     def check_path_permission(self, path: str, operation: str, mode: str) -> Decision:
@@ -102,8 +158,9 @@ class PathTrustManager:
         Args:
             path: Path to trust
         """
-        abs_path = os.path.abspath(path)
-        self.trusted_paths.add(abs_path)
+        canonical_path = self._canonicalize(path)
+        if canonical_path:
+            self.trusted_paths.add(canonical_path)
 
     def get_trusted_paths(self) -> list[str]:
         """Get list of trusted paths.
