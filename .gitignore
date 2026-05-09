@@ -8,3 +8,24 @@ wheels/
 
 # Virtual environments
 .venv
+venv/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Project-specific
+.zero_agent_history
+.omc/
+
+# OS
+.DS_Store
+Thumbs.db
