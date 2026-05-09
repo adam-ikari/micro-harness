@@ -59,8 +59,8 @@
     },
     {
       "path": "src/zero_agent/builtin/shell.py",
-      "accessCount": 18,
-      "lastAccessed": 1778306358098,
+      "accessCount": 31,
+      "lastAccessed": 1778307149217,
       "type": "file"
     },
     {
@@ -142,6 +142,12 @@
       "type": "file"
     },
     {
+      "path": "tests/test_builtin.py",
+      "accessCount": 5,
+      "lastAccessed": 1778307013049,
+      "type": "file"
+    },
+    {
       "path": "src/zero_agent/tui/widgets/message_item.py",
       "accessCount": 4,
       "lastAccessed": 1778244230562,
@@ -163,12 +169,6 @@
       "path": "src/zero_agent/tui/screens/permission.py",
       "accessCount": 3,
       "lastAccessed": 1778244230255,
-      "type": "file"
-    },
-    {
-      "path": "tests/test_builtin.py",
-      "accessCount": 3,
-      "lastAccessed": 1778256029142,
       "type": "file"
     },
     {

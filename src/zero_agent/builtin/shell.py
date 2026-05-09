@@ -1,10 +1,10 @@
 # src/zero_agent/builtin/shell.py
-"""Shell execution tool with security validation and cross-platform support."""
+"""Cross-platform command execution using Python.
 
-import os
-import platform
-import subprocess
-import shlex
+All operations use Python's pathlib, shutil, and os modules.
+No shell dependency - consistent behavior across Windows/Linux/macOS.
+"""
+
 import logging
 from typing import Any, Optional
 
@@ -15,38 +15,16 @@ logger = logging.getLogger(__name__)
 
 # Security limits
 MAX_COMMAND_LENGTH = 4096
-MIN_TIMEOUT = 1
-MAX_TIMEOUT = 300
-DEFAULT_TIMEOUT = 30
-
-# Platform detection
-IS_WINDOWS = platform.system() == "Windows"
 
 
 class ShellResult(dict):
-    """Typed result for shell execution."""
+    """Typed result for command execution."""
 
     success: bool
     stdout: str
     stderr: str
     returncode: int
     error: Optional[str]
-
-
-# Cross-platform command mappings
-COMMAND_ALIASES = {
-    # Unix -> Windows
-    "ls": "dir",
-    "cat": "type",
-    "rm": "del",
-    "mv": "move",
-    "cp": "copy",
-    "mkdir": "md",
-    "rmdir": "rd",
-    "pwd": "cd",
-    "clear": "cls",
-    "which": "where",
-}
 
 
 def get_tool_definition() -> dict[str, Any]:
@@ -57,19 +35,11 @@ def get_tool_definition() -> dict[str, Any]:
     """
     return {
         "name": "run_shell",
-        "description": "Execute shell command or file operation. Cross-platform support.",
+        "description": "Execute file system command. Pure Python implementation, cross-platform.",
         "parameters": {
             "command": {
                 "type": "string",
-                "description": "Shell command to execute",
-            },
-            "timeout": {
-                "type": "integer",
-                "description": f"Timeout in seconds (default {DEFAULT_TIMEOUT}, max {MAX_TIMEOUT})",
-            },
-            "use_python": {
-                "type": "boolean",
-                "description": "Use Python implementation instead of shell (recommended for Windows)",
+                "description": "Command to execute (ls, cat, cp, mv, rm, mkdir, touch, find, grep, pwd, which)",
             },
         },
     }
@@ -102,22 +72,6 @@ def validate_command(command: str) -> tuple[bool, str]:
         return False, error
 
     return True, ""
-
-
-def validate_timeout(timeout: int) -> int:
-    """Validate and clamp timeout value.
-
-    Args:
-        timeout: Requested timeout
-
-    Returns:
-        int: Valid timeout within bounds
-    """
-    if timeout < MIN_TIMEOUT:
-        return MIN_TIMEOUT
-    if timeout > MAX_TIMEOUT:
-        return MAX_TIMEOUT
-    return timeout
 
 
 def execute_python(command: str) -> ShellResult:
@@ -301,14 +255,14 @@ def execute_python(command: str) -> ShellResult:
         })
 
 
-def execute(command: str, timeout: int = DEFAULT_TIMEOUT,
-            use_python: Optional[bool] = None) -> ShellResult:
-    """Execute shell command with security validation and cross-platform support.
+def execute(command: str) -> ShellResult:
+    """Execute command using Python implementation (cross-platform).
+
+    All operations use Python's pathlib, shutil, and os modules.
+    No shell dependency - consistent behavior across platforms.
 
     Args:
         command: Command to execute
-        timeout: Timeout in seconds (clamped to 1-300)
-        use_python: Force Python implementation (None = auto-detect for Windows)
 
     Returns:
         ShellResult: Result with success, stdout, stderr, returncode, error
@@ -324,61 +278,5 @@ def execute(command: str, timeout: int = DEFAULT_TIMEOUT,
             "error": f"Validation error: {error}",
         })
 
-    # Auto-detect Python mode for Windows
-    if use_python is None:
-        use_python = IS_WINDOWS
-
-    # Use Python implementation for cross-platform support
-    if use_python:
-        return execute_python(command)
-
-    # Validate timeout
-    timeout = validate_timeout(timeout)
-
-    # Parse command for logging (not for execution)
-    parser = CommandParser()
-    cmd_name, args, meta = parser.parse(command)
-    risk = parser.get_risk_level(command)
-
-    logger.info(f"Executing command: {cmd_name} (risk: {risk.value})")
-
-    try:
-        # Execute with shell=True for complex commands (pipes, redirects)
-        # Security is handled by:
-        # 1. Command validation above
-        # 2. Path trust system in agent
-        # 3. Risk level assessment
-        result = subprocess.run(
-            command,
-            shell=True,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-
-        return ShellResult({
-            "success": result.returncode == 0,
-            "stdout": result.stdout,
-            "stderr": result.stderr,
-            "returncode": result.returncode,
-            "error": None if result.returncode == 0 else result.stderr,
-        })
-
-    except subprocess.TimeoutExpired:
-        return ShellResult({
-            "success": False,
-            "stdout": "",
-            "stderr": "",
-            "returncode": -1,
-            "error": f"Command timed out after {timeout} seconds",
-        })
-
-    except Exception as e:
-        logger.exception(f"Command execution failed: {e}")
-        return ShellResult({
-            "success": False,
-            "stdout": "",
-            "stderr": "",
-            "returncode": -1,
-            "error": str(e),
-        })
+    # Always use Python implementation for cross-platform consistency
+    return execute_python(command)

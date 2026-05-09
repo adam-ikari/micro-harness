@@ -1,10 +1,11 @@
 # tests/test_builtin.py
+"""Tests for cross-platform shell execution."""
 import pytest
 from zero_agent.builtin.shell import execute, get_tool_definition
 
 
 def test_get_tool_definition():
-    """测试获取工具定义"""
+    """Test tool definition."""
     tool_def = get_tool_definition()
 
     assert tool_def["name"] == "run_shell"
@@ -12,33 +13,49 @@ def test_get_tool_definition():
     assert "parameters" in tool_def
 
 
-def test_shell_execute_simple():
-    """测试执行简单命令"""
-    result = execute("echo 'hello world'")
+def test_shell_execute_pwd():
+    """Test pwd command (pure Python)."""
+    result = execute("pwd")
 
     assert result["success"] is True
-    assert "hello world" in result["stdout"]
+    assert "/" in result["stdout"] or "\\" in result["stdout"]
 
 
-def test_shell_execute_with_timeout():
-    """测试带超时执行"""
-    result = execute("echo 'test'", timeout=5)
+def test_shell_execute_ls():
+    """Test ls command (pure Python)."""
+    result = execute("ls .")
 
     assert result["success"] is True
+    # Should list current directory
+
+
+def test_shell_execute_cat():
+    """Test cat command (pure Python)."""
+    result = execute("cat pyproject.toml")
+
+    assert result["success"] is True
+    assert "zero-agent" in result["stdout"]
 
 
 def test_shell_execute_failed():
-    """测试执行失败命令"""
-    result = execute("ls /nonexistent_directory_12345")
+    """Test non-existent file."""
+    result = execute("cat /nonexistent_file_12345.txt")
 
     assert result["success"] is False
-    assert result["stderr"] != ""
+    assert result["error"] != "" or result["stderr"] != ""
 
 
-def test_shell_execute_timeout():
-    """测试超时"""
-    # 使用 sleep 命令测试超时
-    result = execute("sleep 10", timeout=1)
+def test_shell_execute_empty():
+    """Test empty command."""
+    result = execute("")
 
     assert result["success"] is False
-    assert "timed out" in result["error"].lower()
+    assert "empty" in result["error"].lower()
+
+
+def test_shell_execute_which():
+    """Test which command (pure Python)."""
+    result = execute("which python")
+
+    assert result["success"] is True
+    assert "python" in result["stdout"].lower()
