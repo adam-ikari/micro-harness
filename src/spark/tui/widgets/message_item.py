@@ -6,7 +6,7 @@ from textual.reactive import reactive
 
 
 class UserMessage(Widget):
-    """User message widget."""
+    """User message widget - adapts to terminal width."""
 
     DEFAULT_CSS = """
     UserMessage {
@@ -14,6 +14,7 @@ class UserMessage(Widget):
         padding: 1;
         background: $primary-darken-2;
         border-left: thick $primary;
+        overflow: hidden;
     }
     """
 
@@ -24,14 +25,19 @@ class UserMessage(Widget):
         self.content = content
 
     def render(self) -> str:
-        return f"[bold blue]You:[/] {self.content}"
+        width = self.size.width
+        # Truncate content if too long for narrow terminals
+        content = self.content
+        if width > 0 and len(content) > width * 3:
+            content = content[:width * 3 - 10] + "..."
+        return f"[bold blue]You:[/] {content}"
 
     def update_content(self, content: str):
         self.content = content
 
 
 class AssistantMessage(Widget):
-    """Assistant message widget."""
+    """Assistant message widget - adapts to terminal width."""
 
     DEFAULT_CSS = """
     AssistantMessage {
@@ -39,6 +45,7 @@ class AssistantMessage(Widget):
         padding: 1;
         background: $surface-darken-1;
         border-left: thick $secondary;
+        overflow: hidden;
     }
     """
 
@@ -49,7 +56,11 @@ class AssistantMessage(Widget):
         self.content = content
 
     def render(self) -> str:
+        width = self.size.width
         display = self.content if self.content else "..."
+        # Truncate content if too long for narrow terminals
+        if width > 0 and len(display) > width * 5:
+            display = display[:width * 5 - 10] + "..."
         return f"[bold green]Assistant:[/] {display}"
 
     def update_content(self, content: str):
@@ -57,13 +68,14 @@ class AssistantMessage(Widget):
 
 
 class ToolMessage(Widget):
-    """Tool call message widget."""
+    """Tool call message widget - adapts to terminal width."""
 
     DEFAULT_CSS = """
     ToolMessage {
         margin: 1 0;
         padding: 1;
         background: $surface-darken-2;
+        overflow: hidden;
     }
     ToolMessage.pending { border-left: thick $warning; }
     ToolMessage.running { border-left: thick $primary; }
@@ -84,25 +96,33 @@ class ToolMessage(Widget):
         self.result = ""
 
     def render(self) -> str:
+        width = self.size.width
         status_icon = {
-            "pending": "⏳",
-            "running": "🔄",
-            "success": "✅",
-            "error": "❌",
-            "denied": "🚫",
+            "pending": "...",
+            "running": "...",
+            "success": "OK",
+            "error": "ERR",
+            "denied": "DENY",
         }
-        icon = status_icon.get(self.status, "❓")
+        icon = status_icon.get(self.status, "?")
 
-        # Show tool call
-        if self.tool_name == "run_shell":
+        # Show tool call - adapt to width
+        if self.tool_name == "Bash":
             cmd = self.args.get("command", "")
-            display = f"[bold yellow]{icon} Tool:[/] {self.tool_name}\n  [dim]$ {cmd}[/]"
+            # Truncate command for narrow terminals
+            if width > 0 and len(cmd) > width - 15:
+                cmd = cmd[:width - 18] + "..."
+            display = f"[bold yellow]{icon}[/] {self.tool_name}: [dim]$ {cmd}[/]"
         else:
-            display = f"[bold yellow]{icon} Tool:[/] {self.tool_name}"
+            display = f"[bold yellow]{icon}[/] {self.tool_name}"
 
-        # Show result
+        # Show result - adapt to width
         if self.result:
-            display += f"\n  [dim]{self.result[:200]}[/]"
+            result_text = self.result
+            max_len = max(50, width - 10) if width > 0 else 100
+            if len(result_text) > max_len:
+                result_text = result_text[:max_len - 3] + "..."
+            display += f"\n  {result_text}"
 
         return display
 

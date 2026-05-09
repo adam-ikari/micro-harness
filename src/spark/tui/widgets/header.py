@@ -15,6 +15,7 @@ class Header(Widget):
         background: $primary;
         color: $text;
         padding: 0 1;
+        overflow: hidden;
     }
     """
 
@@ -23,15 +24,33 @@ class Header(Widget):
     model = reactive("gemma3:4b")
 
     def render(self) -> str:
-        """Render status bar."""
+        """Render status bar - adapts to terminal width."""
         mode_display = {
-            "plan": "📋 plan",
-            "ask": "❓ ask",
-            "yolo": "🚀 yolo",
+            "plan": "plan",
+            "ask": "ask",
+            "yolo": "yolo",
         }
         lang_display = {
             "en": "EN",
-            "zh": "中",
-            "ja": "日",
+            "zh": "ZH",
+            "ja": "JA",
         }
-        return f"[bold]{mode_display.get(self.mode, self.mode)}[/] │ {lang_display.get(self.lang, self.lang)} │ {self.model}"
+
+        # Get terminal width
+        width = self.size.width
+
+        # Truncate model name if needed
+        model = self.model
+        if len(model) > 15:
+            model = model[:12] + "..."
+
+        # Build display based on width
+        if width < 30:
+            # Very narrow: just mode
+            return f"[bold]{mode_display.get(self.mode, self.mode)}[/]"
+        elif width < 50:
+            # Narrow: mode + lang
+            return f"[bold]{mode_display.get(self.mode, self.mode)}[/] | {lang_display.get(self.lang, self.lang)}"
+        else:
+            # Normal: mode + lang + model
+            return f"[bold]{mode_display.get(self.mode, self.mode)}[/] | {lang_display.get(self.lang, self.lang)} | {model}"

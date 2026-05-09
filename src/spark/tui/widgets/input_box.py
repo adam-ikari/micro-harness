@@ -8,7 +8,7 @@ from textual.reactive import reactive
 
 
 class InputBox(Horizontal):
-    """Input box widget."""
+    """Input box widget - adapts to terminal size."""
 
     DEFAULT_CSS = """
     InputBox {
@@ -20,6 +20,12 @@ class InputBox(Horizontal):
     }
     InputBox Input {
         height: 1fr;
+        width: 1fr;
+    }
+    .mode-indicator {
+        color: $accent;
+        text-style: bold;
+        min-width: 8;
     }
     """
 
@@ -43,3 +49,13 @@ class InputBox(Horizontal):
 
     def focus(self):
         self._input.focus()
+
+    def watch_size(self, old_size, new_size):
+        """React to size changes."""
+        # Adjust placeholder based on width
+        if new_size.width < 30:
+            self._input.placeholder = ">"
+        elif new_size.width < 50:
+            self._input.placeholder = "Type..."
+        else:
+            self._input.placeholder = "Type your message..."
