@@ -21,6 +21,22 @@ class FileSystemOperations:
     """Cross-platform file system operations."""
 
     @staticmethod
+    def search(query: str, max_results: int = 5) -> str:
+        """Web search using DuckDuckGo (no API key required).
+
+        Args:
+            query: Search query
+            max_results: Maximum results to return
+
+        Returns:
+            str: Formatted search results
+        """
+        from zero_agent.search.duckduckgo import DuckDuckGoSearch
+        search = DuckDuckGoSearch()
+        result = search.search(query, max_results)
+        return result.to_text(max_results)
+
+    @staticmethod
     def list_dir(path: PathLike = ".",
                  all_files: bool = False,
                  long_format: bool = False) -> List[str]:

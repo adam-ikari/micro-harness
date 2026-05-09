@@ -217,6 +217,16 @@ def execute_python(command: str) -> ShellResult:
             results = fs.grep(pattern, path, ignore_case)
             output = "\n".join(results)
 
+        elif cmd_name == "search":
+            # Web search using DuckDuckGo
+            if not args:
+                return ShellResult({
+                    "success": False, "stdout": "", "stderr": "",
+                    "returncode": -1, "error": "Missing search query",
+                })
+            query = " ".join(args)
+            output = fs.search(query)
+
         else:
             # Unknown command for Python implementation
             return ShellResult({
@@ -224,7 +234,7 @@ def execute_python(command: str) -> ShellResult:
                 "stdout": "",
                 "stderr": "",
                 "returncode": -1,
-                "error": f"Command '{cmd_name}' not supported in Python mode. Use shell mode.",
+                "error": f"Command '{cmd_name}' not supported. Available: ls, cat, cp, mv, rm, mkdir, touch, find, grep, pwd, which, search",
             })
 
         # Check if output is an error
