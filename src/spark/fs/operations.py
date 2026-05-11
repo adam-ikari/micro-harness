@@ -305,16 +305,24 @@ class FileSystemOperations:
 
     @staticmethod
     def grep(pattern: str, path: PathLike,
-             ignore_case: bool = False) -> List[str]:
+             ignore_case: bool = False,
+             recursive: bool = False,
+             line_numbers: bool = False,
+             count_only: bool = False,
+             invert: bool = False) -> List[str]:
         """Search in files (cross-platform grep).
 
         Args:
             pattern: Search pattern
             path: File or directory path
             ignore_case: Case insensitive search
+            recursive: Search recursively
+            line_numbers: Show line numbers
+            count_only: Only show match count
+            invert: Invert match (show non-matching)
 
         Returns:
-            List of matching lines
+            List of matching lines or count
         """
         import re
 
@@ -323,25 +331,50 @@ class FileSystemOperations:
         regex = re.compile(pattern, flags)
 
         results = []
+        match_count = 0
+
+        def search_file(file_path: Path):
+            nonlocal match_count
+            try:
+                with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+                    for i, line in enumerate(f, 1):
+                        matches = regex.search(line)
+                        if invert:
+                            if not matches:
+                                if count_only:
+                                    match_count += 1
+                                elif line_numbers:
+                                    results.append(f"{file_path}:{i}:{line.rstrip()}")
+                                else:
+                                    results.append(f"{file_path}:{line.rstrip()}")
+                        else:
+                            if matches:
+                                if count_only:
+                                    match_count += 1
+                                elif line_numbers:
+                                    results.append(f"{file_path}:{i}:{line.rstrip()}")
+                                else:
+                                    results.append(f"{file_path}:{line.rstrip()}")
+            except (PermissionError, UnicodeDecodeError):
+                pass
+
         try:
             if path.is_file():
-                with open(path, 'r', encoding='utf-8', errors='replace') as f:
-                    for i, line in enumerate(f, 1):
-                        if regex.search(line):
-                            results.append(f"{path}:{i}:{line.rstrip()}")
+                search_file(path)
             elif path.is_dir():
-                for file in path.rglob('*'):
-                    if file.is_file():
-                        try:
-                            with open(file, 'r', encoding='utf-8', errors='replace') as f:
-                                for i, line in enumerate(f, 1):
-                                    if regex.search(line):
-                                        results.append(f"{file}:{i}:{line.rstrip()}")
-                        except (PermissionError, UnicodeDecodeError):
-                            pass
+                if recursive:
+                    for file in path.rglob('*'):
+                        if file.is_file():
+                            search_file(file)
+                else:
+                    for file in path.iterdir():
+                        if file.is_file():
+                            search_file(file)
         except PermissionError as e:
             return [f"Error: Permission denied - {e}"]
 
+        if count_only:
+            return [str(match_count)]
         return results
 
     @staticmethod
