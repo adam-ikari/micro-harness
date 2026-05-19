@@ -12,10 +12,14 @@ import yaml
 @dataclass
 class LLMConfig:
     base_url: str = "http://localhost:11434"
-    model: str = "gemma4"
-    num_ctx: int = 8192
-    num_predict: int = 2048
+    model: str = "gemma3:1b"  # Default to small model
+    num_ctx: int = 2048  # Smaller context for small models
+    num_predict: int = 512  # Shorter responses
     api_key: str = ""  # Optional API key for Anthropic-compatible APIs
+    # Small model optimizations
+    temperature: float = 0.3  # Lower temperature for more focused output
+    top_p: float = 0.9
+    repeat_penalty: float = 1.1
 
 
 @dataclass
@@ -66,9 +70,12 @@ def _get_default_config() -> dict:
     return {
         "llm": {
             "base_url": "http://localhost:11434",
-            "model": "gemma3:4b",
-            "num_ctx": 8192,
-            "num_predict": 2048,
+            "model": "gemma3:1b",  # Small model default
+            "num_ctx": 2048,  # Small context
+            "num_predict": 512,  # Short responses
+            "temperature": 0.3,  # Focused output
+            "top_p": 0.9,
+            "repeat_penalty": 1.1,
         },
         "mcp_servers": {},
         "skill_paths": ["~/.spark/skills", "./.spark/skills"],
@@ -84,8 +91,8 @@ def _get_default_config() -> dict:
             },
         },
         "history": {
-            "max_tokens": 8000,
-            "compress_threshold": 0.8,
+            "max_tokens": 2000,  # Smaller history for small models
+            "compress_threshold": 0.6,  # Compress earlier
         },
     }
 

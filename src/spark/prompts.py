@@ -4,34 +4,48 @@
 import re
 from typing import Optional
 
-# Minimal system prompts per mode (optimized for coding)
+# Minimal system prompts per mode (optimized for small models)
 SYSTEM_PROMPTS = {
-    "plan": "Code analyzer. Read-only. Explain code, suggest fixes. IMPORTANT: Always check tool STATUS. FAILURE means do NOT proceed.",
-    "ask": "Coding assistant. Shell access. Confirm before write. IMPORTANT: Always check tool STATUS. FAILURE means do NOT proceed.",
-    "yolo": "Coding assistant. Execute freely. Fix bugs, write code. IMPORTANT: Always check tool STATUS. FAILURE means do NOT proceed.",
+    "plan": "Analyze code. Read-only. No execution.",
+    "ask": "Code helper. Ask before write.",
+    "yolo": "Code helper. Execute freely.",
 }
 
 # Default fallback
-DEFAULT_SYSTEM = "Coding assistant. IMPORTANT: Always check tool STATUS. FAILURE means do NOT proceed."
+DEFAULT_SYSTEM = "Code helper."
 
-# Programming context hints
+# Few-shot examples for tool calling (critical for small models)
+TOOL_EXAMPLES = """
+Examples:
+User: list files
+You: bash("ls")
+
+User: read main.py
+You: bash("cat main.py")
+
+User: find python files
+You: bash("find . -name '*.py'")
+
+User: search for error in logs
+You: bash("grep error *.log")
+
+User: count lines in file
+You: bash("wc -l file.txt")
+"""
+
+# Programming context hints (minimal)
 CONTEXT_HINTS = {
-    "debug": "Find bugs, explain errors, suggest fixes.",
-    "write": "Write clean code. Follow conventions.",
-    "refactor": "Improve code structure. Keep behavior.",
-    "test": "Write tests. Cover edge cases.",
-    "explain": "Explain code clearly. Simple terms.",
-}
-
-# Tool usage hints (minimal, programming focused)
-TOOL_HINTS = {
-    "run_shell": "Run: ls, cat, grep, git, pytest, npm.",
+    "debug": "Find bugs. Suggest fixes.",
+    "write": "Write clean code.",
+    "refactor": "Improve structure.",
+    "test": "Write tests.",
+    "explain": "Explain simply.",
 }
 
 # Compression prompts (minimal)
-COMPRESSION_PROMPT = "Summarize code changes. Keep: files, functions, fixes."
+COMPRESSION_PROMPT = "Summarize: files, functions, fixes."
 
-EXTRACTION_PROMPT = "Extract: file paths, function names, decisions. Or NONE."
+EXTRACTION_PROMPT = "Extract: files, functions. Or NONE."
 
 # Programming keywords for context detection
 PROGRAMMING_KEYWORDS = {

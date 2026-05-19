@@ -30,6 +30,10 @@ class OllamaAdapter:
         self.num_ctx = config.num_ctx
         self.num_predict = config.num_predict
         self.api_key = config.api_key
+        # Small model optimizations
+        self.temperature = getattr(config, 'temperature', 0.3)
+        self.top_p = getattr(config, 'top_p', 0.9)
+        self.repeat_penalty = getattr(config, 'repeat_penalty', 1.1)
         self._client = None
 
         # Detect API type based on URL or api_key
@@ -43,24 +47,18 @@ class OllamaAdapter:
         return self._client
 
     def _get_tool_prompt(self, tools: list[dict]) -> str:
-        """Generate tool usage prompt for text-based tool calling.
+        """Generate tool usage prompt optimized for small models.
 
-        Instead of using API's tool calling feature, we embed tool
-        instructions in the prompt and parse the output.
+        Uses few-shot examples to help small models understand format.
         """
         if not tools:
             return ""
 
-        prompt = "\n\n## Shell Commands\n\n"
-        prompt += "Run shell commands using: bash(\"command\")\n\n"
-        prompt += "Examples:\n"
-        prompt += "- bash(\"ls -la\")\n"
-        prompt += "- bash(\"find . -name '*.py'\")\n"
-        prompt += "- bash(\"grep -r 'pattern' .\")\n"
-        prompt += "- bash(\"cat filename.txt\")\n"
-        prompt += "- bash(\"ls -la | grep .py | wc -l\")\n"
-        prompt += "- bash(\"cd src && find . -name '*.py' | xargs wc -l\")\n\n"
-        prompt += "You can chain commands with pipes, &&, || for complex operations.\n"
+        # Minimal prompt with few-shot examples
+        prompt = "\nUse: bash(\"cmd\")\n"
+        prompt += "Ex: bash(\"ls\")\n"
+        prompt += "Ex: bash(\"cat file.py\")\n"
+        prompt += "Ex: bash(\"grep pattern *.py\")\n"
         return prompt
 
     def _parse_tool_calls(self, content: str) -> tuple[str, list[dict] | None]:
@@ -227,6 +225,9 @@ class OllamaAdapter:
         options = {
             "num_ctx": self.num_ctx,
             "num_predict": self.num_predict,
+            "temperature": self.temperature,
+            "top_p": self.top_p,
+            "repeat_penalty": self.repeat_penalty,
         }
 
         kwargs = {
