@@ -1,13 +1,15 @@
 # src/spark/builtin/shell.py
-"""Shell emulator using Python - cross-platform, no real shell dependency.
+"""Shell executor - cross-platform shell command execution.
 
-Small models only need to learn one tool: run_shell.
-Uses BusyBox when available for reliable command execution.
+Small models only need to learn one tool: bash("command").
+- Linux/Mac: uses native shell (/bin/sh)
+- Windows: uses Git Bash
 """
 
 import logging
 import subprocess
 import shutil
+import sys
 from typing import Any, Optional
 from pathlib import Path
 
@@ -26,35 +28,29 @@ try:
 except ImportError:
     HAS_BASHLEX = False
 
-# Find BusyBox
-BUSYBOX_PATH = None
-for path in ['/usr/bin/busybox', '/bin/busybox', shutil.which('busybox')]:
-    if path and Path(path).exists():
-        BUSYBOX_PATH = path
-        break
+# Find shell executor
+SHELL_PATH = None
+SHELL_TYPE = None  # 'native', 'gitbash', or None
 
-# Commands that should use BusyBox (more reliable)
-BUSYBOX_COMMANDS = {
-    'cat', 'head', 'tail', 'grep', 'sed', 'awk', 'cut', 'tr',
-    'sort', 'uniq', 'wc', 'find', 'xargs', 'tee',
-    'ls', 'pwd', 'echo', 'printf', 'basename', 'dirname',
-    'cp', 'mv', 'rm', 'mkdir', 'rmdir', 'touch',
-    'chmod', 'chown', 'ln', 'df', 'du',
-    'tar', 'gzip', 'gunzip', 'bzip2', 'bunzip2',
-    'diff', 'patch', 'cmp',
-    'env', 'printenv', 'which',
-    'date', 'uname', 'hostname', 'whoami', 'id',
-    'ps', 'kill', 'killall', 'top',
-    'ping', 'wget', 'curl',
-    'vi', 'ed',
-}
-
-# Commands that should NOT use BusyBox (security or Python implementation better)
-PYTHON_COMMANDS = {
-    # Use Python's safer implementation
-    'rm',  # Better safety checks in Python
-}
-
+if sys.platform == 'win32':
+    # Windows: check for Git Bash
+    git_bash_paths = [
+        r'C:\Program Files\Git\bin\bash.exe',
+        r'C:\Program Files\Git\usr\bin\bash.exe',
+        r'C:\Program Files (x86)\Git\bin\bash.exe',
+        shutil.which('bash.exe'),
+    ]
+    for path in git_bash_paths:
+        if path and Path(path).exists():
+            SHELL_PATH = path
+            SHELL_TYPE = 'gitbash'
+            logger.info(f"Found Git Bash at: {path}")
+            break
+else:
+    # Linux/Mac: use native shell
+    SHELL_PATH = '/bin/sh'
+    SHELL_TYPE = 'native'
+    logger.info(f"Using native shell: {SHELL_PATH}")
 
 class ShellResult(dict):
     """Typed result for command execution."""
@@ -66,8 +62,8 @@ class ShellResult(dict):
     error: Optional[str]
 
 
-def execute_with_busybox(command: str, timeout: int = 30) -> ShellResult:
-    """Execute command using BusyBox.
+def execute_with_shell(command: str, timeout: int = 30) -> ShellResult:
+    """Execute command using native shell or Git Bash.
 
     Args:
         command: Shell command to execute
@@ -76,23 +72,32 @@ def execute_with_busybox(command: str, timeout: int = 30) -> ShellResult:
     Returns:
         ShellResult: Execution result
     """
-    if not BUSYBOX_PATH:
+    if not SHELL_PATH:
         return ShellResult({
             "success": False,
             "stdout": "",
-            "stderr": "BusyBox not available",
+            "stderr": "No shell available",
             "returncode": -1,
-            "error": "BusyBox not found",
+            "error": "Shell not found",
         })
 
     try:
-        # Use busybox ash shell for proper command handling
-        result = subprocess.run(
-            [BUSYBOX_PATH, "sh", "-c", command],
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
+        if SHELL_TYPE == 'gitbash':
+            # Git Bash on Windows
+            result = subprocess.run(
+                [SHELL_PATH, "-c", command],
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+            )
+        else:
+            # Native shell on Linux/Mac
+            result = subprocess.run(
+                [SHELL_PATH, "-c", command],
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+            )
 
         return ShellResult({
             "success": result.returncode == 0,
@@ -118,27 +123,31 @@ def execute_with_busybox(command: str, timeout: int = 30) -> ShellResult:
         })
 
 
-def should_use_busybox(command: str) -> bool:
-    """Check if command should use BusyBox.
+# Legacy alias
+execute_with_busybox = execute_with_shell
+
+
+def should_use_shell(command: str) -> bool:
+    """Check if command should use shell execution.
 
     Args:
         command: Command to check
 
     Returns:
-        bool: True if should use BusyBox
+        bool: True if should use shell
     """
-    if not BUSYBOX_PATH:
+    if not SHELL_PATH:
         return False
 
-    # Parse first command
-    parts = command.split()
-    if not parts:
-        return False
+    # For pipelines and complex commands, always use shell
+    if '|' in command or '&&' in command or '||' in command:
+        return True
 
-    cmd_name = parts[0]
+    return True  # Always use shell when available
 
-    # Check if in busybox commands and not in python commands
-    return cmd_name in BUSYBOX_COMMANDS and cmd_name not in PYTHON_COMMANDS
+
+# Legacy alias
+should_use_busybox = should_use_shell
 
 
 def get_tool_definition() -> dict[str, Any]:
@@ -613,7 +622,7 @@ def execute_single(command: str, stdin_data: str = None) -> ShellResult:
 def execute(command: str) -> ShellResult:
     """Execute shell command.
 
-    Uses BusyBox when available for reliable command execution.
+    Uses native shell (Linux/Mac) or Git Bash (Windows) for reliable command execution.
     Falls back to Python implementation for cross-platform support.
 
     Supports pipes: "ls | grep .py" will chain commands.
@@ -624,13 +633,23 @@ def execute(command: str) -> ShellResult:
     Returns:
         ShellResult: Result with success, stdout, stderr, returncode, error
     """
-    # Check for pipes - use BusyBox for pipeline handling
-    if "|" in command and BUSYBOX_PATH:
-        return execute_with_busybox(command)
+    # Validate empty command first
+    if not command or not command.strip():
+        return ShellResult({
+            "success": False,
+            "stdout": "",
+            "stderr": "",
+            "returncode": -1,
+            "error": "Empty command",
+        })
 
-    # Check if should use BusyBox for single command
-    if should_use_busybox(command):
-        return execute_with_busybox(command)
+    # Check for pipes - use shell for pipeline handling
+    if "|" in command and SHELL_PATH:
+        return execute_with_shell(command)
+
+    # Check if should use shell for single command
+    if should_use_shell(command):
+        return execute_with_shell(command)
 
     # Validate command
     is_valid, error = validate_command(command)
