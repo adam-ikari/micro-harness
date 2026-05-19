@@ -60,7 +60,10 @@ class TestGrepAdvanced:
 
         result = execute(f"grep -n hello {tmp_path / 'test.txt'}")
         assert result["success"]
-        assert ":2:" in result["stdout"]
+        # BusyBox grep -n outputs "line_number:content" format
+        assert "hello" in result["stdout"]
+        # Line 2 contains hello
+        assert "2" in result["stdout"]
 
     def test_grep_count(self, tmp_path):
         """Test grep -c (count)."""

@@ -41,7 +41,8 @@ def test_shell_execute_failed():
     result = execute("cat /nonexistent_file_12345.txt")
 
     assert result["success"] is False
-    assert result["error"] != "" or result["stderr"] != ""
+    # Check for error indication in either stderr or error key
+    assert result.get("stderr") != "" or result.get("error") != ""
 
 
 def test_shell_execute_empty():

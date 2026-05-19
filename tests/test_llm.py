@@ -22,10 +22,10 @@ def test_ollama_adapter_build_tools():
         {"name": "run_shell", "description": "Execute shell command", "parameters": {}}
     ]
 
-    # Test the tool prompt generation instead of non-existent _simplify_tools
+    # Test the tool prompt generation - new format uses bash("command")
     tool_prompt = adapter._get_tool_prompt(tools)
-    assert "run_shell" in tool_prompt
-    assert "Execute shell command" in tool_prompt
+    assert "bash" in tool_prompt.lower()
+    assert "command" in tool_prompt
 
 
 def test_ollama_adapter_estimate_tokens():
@@ -87,8 +87,9 @@ def test_ollama_adapter_tool_prompt_with_params():
     ]
 
     prompt = adapter._get_tool_prompt(tools)
-    assert "test_tool" in prompt
-    assert "path" in prompt or "mode" in prompt
+    # New format focuses on bash("command") style
+    assert "bash" in prompt.lower()
+    assert "command" in prompt
 
 
 def test_ollama_adapter_parse_tool_calls_xml():

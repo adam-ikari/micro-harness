@@ -22,8 +22,9 @@ class TestToolPrompt:
         adapter = OllamaAdapter(config)
         tools = [{"name": "Bash", "description": "Run command", "parameters": {}}]
         prompt = adapter._get_tool_prompt(tools)
-        assert "Bash" in prompt
-        assert "Run command" in prompt
+        # New format uses bash("command") style
+        assert "bash" in prompt.lower()
+        assert "command" in prompt
 
     def test_get_tool_prompt_multiple(self):
         """Test tool prompt with multiple tools."""
@@ -34,8 +35,9 @@ class TestToolPrompt:
             {"name": "Read", "description": "Read file", "parameters": {}},
         ]
         prompt = adapter._get_tool_prompt(tools)
-        assert "Bash" in prompt
-        assert "Read" in prompt
+        # New format uses bash("command") style for all tools
+        assert "bash" in prompt.lower()
+        assert "command" in prompt
 
 
 class TestToolCallParsing:

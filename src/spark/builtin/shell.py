@@ -2,10 +2,12 @@
 """Shell emulator using Python - cross-platform, no real shell dependency.
 
 Small models only need to learn one tool: run_shell.
-All common commands are simulated using Python APIs.
+Uses BusyBox when available for reliable command execution.
 """
 
 import logging
+import subprocess
+import shutil
 from typing import Any, Optional
 from pathlib import Path
 
@@ -24,6 +26,35 @@ try:
 except ImportError:
     HAS_BASHLEX = False
 
+# Find BusyBox
+BUSYBOX_PATH = None
+for path in ['/usr/bin/busybox', '/bin/busybox', shutil.which('busybox')]:
+    if path and Path(path).exists():
+        BUSYBOX_PATH = path
+        break
+
+# Commands that should use BusyBox (more reliable)
+BUSYBOX_COMMANDS = {
+    'cat', 'head', 'tail', 'grep', 'sed', 'awk', 'cut', 'tr',
+    'sort', 'uniq', 'wc', 'find', 'xargs', 'tee',
+    'ls', 'pwd', 'echo', 'printf', 'basename', 'dirname',
+    'cp', 'mv', 'rm', 'mkdir', 'rmdir', 'touch',
+    'chmod', 'chown', 'ln', 'df', 'du',
+    'tar', 'gzip', 'gunzip', 'bzip2', 'bunzip2',
+    'diff', 'patch', 'cmp',
+    'env', 'printenv', 'which',
+    'date', 'uname', 'hostname', 'whoami', 'id',
+    'ps', 'kill', 'killall', 'top',
+    'ping', 'wget', 'curl',
+    'vi', 'ed',
+}
+
+# Commands that should NOT use BusyBox (security or Python implementation better)
+PYTHON_COMMANDS = {
+    # Use Python's safer implementation
+    'rm',  # Better safety checks in Python
+}
+
 
 class ShellResult(dict):
     """Typed result for command execution."""
@@ -33,6 +64,81 @@ class ShellResult(dict):
     stderr: str
     returncode: int
     error: Optional[str]
+
+
+def execute_with_busybox(command: str, timeout: int = 30) -> ShellResult:
+    """Execute command using BusyBox.
+
+    Args:
+        command: Shell command to execute
+        timeout: Timeout in seconds
+
+    Returns:
+        ShellResult: Execution result
+    """
+    if not BUSYBOX_PATH:
+        return ShellResult({
+            "success": False,
+            "stdout": "",
+            "stderr": "BusyBox not available",
+            "returncode": -1,
+            "error": "BusyBox not found",
+        })
+
+    try:
+        # Use busybox ash shell for proper command handling
+        result = subprocess.run(
+            [BUSYBOX_PATH, "sh", "-c", command],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+
+        return ShellResult({
+            "success": result.returncode == 0,
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+            "returncode": result.returncode,
+        })
+    except subprocess.TimeoutExpired:
+        return ShellResult({
+            "success": False,
+            "stdout": "",
+            "stderr": f"Command timed out after {timeout}s",
+            "returncode": -1,
+            "error": "Timeout",
+        })
+    except Exception as e:
+        return ShellResult({
+            "success": False,
+            "stdout": "",
+            "stderr": str(e),
+            "returncode": -1,
+            "error": str(e),
+        })
+
+
+def should_use_busybox(command: str) -> bool:
+    """Check if command should use BusyBox.
+
+    Args:
+        command: Command to check
+
+    Returns:
+        bool: True if should use BusyBox
+    """
+    if not BUSYBOX_PATH:
+        return False
+
+    # Parse first command
+    parts = command.split()
+    if not parts:
+        return False
+
+    cmd_name = parts[0]
+
+    # Check if in busybox commands and not in python commands
+    return cmd_name in BUSYBOX_COMMANDS and cmd_name not in PYTHON_COMMANDS
 
 
 def get_tool_definition() -> dict[str, Any]:
@@ -505,10 +611,10 @@ def execute_single(command: str, stdin_data: str = None) -> ShellResult:
 
 
 def execute(command: str) -> ShellResult:
-    """Execute command using Python implementation.
+    """Execute shell command.
 
-    All operations use Python's pathlib, shutil, and os modules.
-    No shell dependency - consistent behavior across platforms.
+    Uses BusyBox when available for reliable command execution.
+    Falls back to Python implementation for cross-platform support.
 
     Supports pipes: "ls | grep .py" will chain commands.
 
@@ -518,9 +624,13 @@ def execute(command: str) -> ShellResult:
     Returns:
         ShellResult: Result with success, stdout, stderr, returncode, error
     """
-    # Check for pipes
-    if "|" in command:
-        return execute_pipeline(command)
+    # Check for pipes - use BusyBox for pipeline handling
+    if "|" in command and BUSYBOX_PATH:
+        return execute_with_busybox(command)
+
+    # Check if should use BusyBox for single command
+    if should_use_busybox(command):
+        return execute_with_busybox(command)
 
     # Validate command
     is_valid, error = validate_command(command)
