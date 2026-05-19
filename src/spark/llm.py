@@ -3,11 +3,15 @@
 
 import re
 import json
+import logging
 from dataclasses import dataclass
 from typing import Any
 import httpx
 
 from spark.config import LLMConfig
+from spark.errors import LLMConnectionError, LLMResponseError, LLMTimeoutError
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -173,10 +177,26 @@ Think step by step, use tools when needed.
         if system:
             payload["system"] = system
 
-        with httpx.Client(timeout=120) as client:
-            response = client.post(url, headers=headers, json=payload)
-            response.raise_for_status()
-            data = response.json()
+        try:
+            with httpx.Client(timeout=120) as client:
+                response = client.post(url, headers=headers, json=payload)
+                response.raise_for_status()
+                data = response.json()
+        except httpx.TimeoutException as e:
+            logger.error(f"Anthropic API timeout: {e}")
+            raise LLMTimeoutError("Anthropic API request timed out", {"url": url})
+        except httpx.ConnectError as e:
+            logger.error(f"Anthropic API connection error: {e}")
+            raise LLMConnectionError("Cannot connect to Anthropic API", {"url": url, "error": str(e)})
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Anthropic API HTTP error: {e}")
+            raise LLMResponseError(f"Anthropic API error: {e.response.status_code}", {"url": url, "status": e.response.status_code})
+        except json.JSONDecodeError as e:
+            logger.error(f"Anthropic API invalid JSON: {e}")
+            raise LLMResponseError("Invalid JSON response from Anthropic API", {"error": str(e)})
+        except Exception as e:
+            logger.error(f"Anthropic API unexpected error: {e}")
+            raise LLMResponseError(f"Unexpected error: {e}", {"error": str(e)})
 
         # Parse response
         content = ""
@@ -191,7 +211,11 @@ Think step by step, use tools when needed.
 
     def _call_ollama(self, messages: list[dict], tools: list[dict] | None = None) -> ChatResponse:
         """Call Ollama API."""
-        client = self._get_client()
+        try:
+            client = self._get_client()
+        except Exception as e:
+            logger.error(f"Failed to initialize Ollama client: {e}")
+            raise LLMConnectionError("Cannot connect to Ollama", {"base_url": self.base_url, "error": str(e)})
 
         # Add tool prompt for text-based tool calling
         if tools:
@@ -259,14 +283,20 @@ Think step by step, use tools when needed.
                     return ChatResponse(content=remaining, tool_calls=parsed_calls)
 
             return ChatResponse(content=content, tool_calls=tool_calls)
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Ollama native tool calling failed, falling back to text-based: {e}")
             # Fall back to text-based
-            del kwargs["tools"]
-            response = client.chat(**kwargs)
-            message = response.get("message", {})
-            content = message.get("content", "")
-            remaining, tool_calls = self._parse_tool_calls(content)
-            return ChatResponse(content=remaining, tool_calls=tool_calls)
+            if "tools" in kwargs:
+                del kwargs["tools"]
+            try:
+                response = client.chat(**kwargs)
+                message = response.get("message", {})
+                content = message.get("content", "")
+                remaining, tool_calls = self._parse_tool_calls(content)
+                return ChatResponse(content=remaining, tool_calls=tool_calls)
+            except Exception as fallback_error:
+                logger.error(f"Ollama fallback also failed: {fallback_error}")
+                raise LLMResponseError("Ollama request failed", {"error": str(fallback_error)})
 
     def estimate_tokens(self, messages: list[dict]) -> int:
         """Estimate token count for messages."""

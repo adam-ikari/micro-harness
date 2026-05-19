@@ -213,12 +213,21 @@ def execute(command: str) -> ShellResult:
         elif cmd_name == "find":
             path = "."
             name = None
+            file_type = None
+            skip_next = False
             for i, a in enumerate(args):
+                if skip_next:
+                    skip_next = False
+                    continue
                 if a == "-name" and i + 1 < len(args):
                     name = args[i + 1]
+                    skip_next = True
+                elif a == "-type" and i + 1 < len(args):
+                    file_type = args[i + 1]
+                    skip_next = True
                 elif not a.startswith("-"):
                     path = a
-            results = fs.find(path, name)
+            results = fs.find(path, name, file_type)
             output = "\n".join(results) if results else "No files found"
 
         elif cmd_name == "grep":
@@ -228,10 +237,110 @@ def execute(command: str) -> ShellResult:
                     "returncode": -1, "error": "Missing pattern or path",
                 })
             ignore_case = "-i" in args
+            recursive = "-r" in args or "-R" in args
+            line_numbers = "-n" in args
+            count_only = "-c" in args
+            invert = "-v" in args
             pattern = [a for a in args if not a.startswith("-")][0]
             path = [a for a in args if not a.startswith("-")][1]
-            results = fs.grep(pattern, path, ignore_case)
+            results = fs.grep(pattern, path, ignore_case, recursive, line_numbers, count_only, invert)
             output = "\n".join(results)
+
+        elif cmd_name == "echo":
+            output = " ".join(args)
+
+        elif cmd_name == "wc":
+            if not args:
+                return ShellResult({
+                    "success": False, "stdout": "", "stderr": "",
+                    "returncode": -1, "error": "Missing file path",
+                })
+            lines_mode = "-l" in args
+            words_mode = "-w" in args
+            chars_mode = "-c" in args or "-m" in args
+            path = [a for a in args if not a.startswith("-")][0]
+            content = fs.read_file(path)
+            if content.startswith("Error:"):
+                return ShellResult({
+                    "success": False, "stdout": "", "stderr": "",
+                    "returncode": -1, "error": content,
+                })
+            if lines_mode:
+                output = str(len(content.splitlines()))
+            elif words_mode:
+                output = str(len(content.split()))
+            elif chars_mode:
+                output = str(len(content))
+            else:
+                # Default: lines, words, chars
+                output = f"{len(content.splitlines())} {len(content.split())} {len(content)}"
+
+        elif cmd_name == "sort":
+            if not args:
+                return ShellResult({
+                    "success": False, "stdout": "", "stderr": "",
+                    "returncode": -1, "error": "Missing file path",
+                })
+            reverse = "-r" in args
+            path = [a for a in args if not a.startswith("-")][0]
+            content = fs.read_file(path)
+            if content.startswith("Error:"):
+                return ShellResult({
+                    "success": False, "stdout": "", "stderr": "",
+                    "returncode": -1, "error": content,
+                })
+            lines = content.splitlines()
+            sorted_lines = sorted(lines, reverse=reverse)
+            output = "\n".join(sorted_lines)
+
+        elif cmd_name == "uniq":
+            if not args:
+                return ShellResult({
+                    "success": False, "stdout": "", "stderr": "",
+                    "returncode": -1, "error": "Missing file path",
+                })
+            path = [a for a in args if not a.startswith("-")][0]
+            content = fs.read_file(path)
+            if content.startswith("Error:"):
+                return ShellResult({
+                    "success": False, "stdout": "", "stderr": "",
+                    "returncode": -1, "error": content,
+                })
+            lines = content.splitlines()
+            unique_lines = []
+            prev = None
+            for line in lines:
+                if line != prev:
+                    unique_lines.append(line)
+                    prev = line
+            output = "\n".join(unique_lines)
+
+        elif cmd_name == "tree":
+            path = args[0] if args and not args[0].startswith("-") else "."
+            # Simple tree implementation
+            from pathlib import Path
+            p = Path(path)
+            if not p.exists():
+                return ShellResult({
+                    "success": False, "stdout": "", "stderr": "",
+                    "returncode": -1, "error": f"{path} does not exist",
+                })
+            lines = []
+            for item in sorted(p.rglob('*')):
+                rel = item.relative_to(p)
+                depth = len(rel.parts) - 1
+                indent = "  " * depth
+                name = rel.name
+                if item.is_dir():
+                    lines.append(f"{indent}{name}/")
+                else:
+                    lines.append(f"{indent}{name}")
+            output = "\n".join(lines) if lines else "(empty)"
+
+        elif cmd_name == "env":
+            # Show environment variables
+            import os
+            output = "\n".join(f"{k}={v}" for k, v in sorted(os.environ.items()))
 
         elif cmd_name == "search":
             # Web search using DuckDuckGo

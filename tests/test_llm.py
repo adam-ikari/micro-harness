@@ -22,10 +22,10 @@ def test_ollama_adapter_build_tools():
         {"name": "run_shell", "description": "Execute shell command", "parameters": {}}
     ]
 
-    simplified = adapter._simplify_tools(tools)
-    assert len(simplified) == 1
-    assert simplified[0]["type"] == "function"
-    assert "name" in simplified[0]["function"]
+    # Test the tool prompt generation instead of non-existent _simplify_tools
+    tool_prompt = adapter._get_tool_prompt(tools)
+    assert "run_shell" in tool_prompt
+    assert "Execute shell command" in tool_prompt
 
 
 def test_ollama_adapter_estimate_tokens():

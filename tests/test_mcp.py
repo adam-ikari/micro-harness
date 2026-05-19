@@ -42,7 +42,7 @@ def test_mcp_client_init():
     """测试 MCP 客户端初始化"""
     client = MCPClient({})
 
-    assert client.servers == {}
+    assert client.servers_config == {}
     assert client.tools == []
 
 
