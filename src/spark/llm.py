@@ -51,46 +51,42 @@ class OllamaAdapter:
         if not tools:
             return ""
 
-        prompt = "\n\n## Available Tools\n\n"
-        for tool in tools:
-            name = tool.get("name", "")
-            desc = tool.get("description", "")
-            params = tool.get("parameters", {})
-
-            # Get parameter info
-            if params.get("type") == "object" and "properties" in params:
-                props = params["properties"]
-            else:
-                props = params
-
-            param_desc = ", ".join(f"{p}: {props[p].get('type', 'string')}" for p in props)
-
-            prompt += f"### {name}\n{desc}\nUsage: `{name}({param_desc})`\n\n"
-
-        prompt += """## Output Format
-
-When you need to use a tool, output in this format:
-```
-<tool name="ToolName">
-{"param": "value"}
-</tool>
-```
-
-You can use multiple tools. After each tool use, you will see the result.
-Think step by step, use tools when needed.
-"""
+        prompt = "\n\n## Shell Commands\n\n"
+        prompt += "Run shell commands using: bash(\"command\")\n\n"
+        prompt += "Examples:\n"
+        prompt += "- bash(\"ls -la\")\n"
+        prompt += "- bash(\"find . -name '*.py'\")\n"
+        prompt += "- bash(\"grep -r 'pattern' .\")\n"
+        prompt += "- bash(\"cat filename.txt\")\n"
+        prompt += "- bash(\"ls -la | grep .py | wc -l\")\n"
+        prompt += "- bash(\"cd src && find . -name '*.py' | xargs wc -l\")\n\n"
+        prompt += "You can chain commands with pipes, &&, || for complex operations.\n"
         return prompt
 
     def _parse_tool_calls(self, content: str) -> tuple[str, list[dict] | None]:
         """Parse tool calls from model output.
 
         Supports formats:
+        - bash("command") - primary format
+        - Bash("command") - alternative
         - <tool name="Bash">{"command": "pwd"}</tool>
         - ```tool:Bash\n{"command": "pwd"}\n```
         - [Bash: pwd]
         """
         tool_calls = []
         remaining_content = content
+
+        # Pattern 0: bash("command") or Bash("command") - primary format
+        pattern0 = r'(?:bash|Bash)\s*\(\s*"([^"]+)"\s*\)'
+        for match in re.finditer(pattern0, content):
+            command = match.group(1)
+            tool_calls.append({
+                "function": {
+                    "name": "Bash",
+                    "arguments": {"command": command}
+                }
+            })
+            remaining_content = remaining_content.replace(match.group(0), "")
 
         # Pattern 1: <tool name="Name">json</tool>
         pattern1 = r'<tool\s+name=["\']?(\w+)["\']?\s*>([^<]+)</tool>'

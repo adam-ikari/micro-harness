@@ -129,6 +129,44 @@ def test_ollama_adapter_parse_tool_calls_simple():
     assert tool_calls[0]["function"]["name"] == "Bash"
 
 
+def test_ollama_adapter_parse_bash_format():
+    """Test parsing bash("command") format."""
+    config = LLMConfig()
+    adapter = OllamaAdapter(config)
+
+    content = "I'll check the files: bash(\"ls -la\")"
+    remaining, tool_calls = adapter._parse_tool_calls(content)
+
+    assert tool_calls is not None
+    assert len(tool_calls) == 1
+    assert tool_calls[0]["function"]["name"] == "Bash"
+    assert tool_calls[0]["function"]["arguments"]["command"] == "ls -la"
+
+
+def test_ollama_adapter_parse_bash_format_complex():
+    """Test parsing bash() with complex command."""
+    config = LLMConfig()
+    adapter = OllamaAdapter(config)
+
+    content = "bash(\"find . -name '*.py' | xargs wc -l\")"
+    remaining, tool_calls = adapter._parse_tool_calls(content)
+
+    assert tool_calls is not None
+    assert tool_calls[0]["function"]["arguments"]["command"] == "find . -name '*.py' | xargs wc -l"
+
+
+def test_ollama_adapter_parse_multiple_bash_calls():
+    """Test parsing multiple bash() calls."""
+    config = LLMConfig()
+    adapter = OllamaAdapter(config)
+
+    content = "First: bash(\"ls\") then: bash(\"pwd\")"
+    remaining, tool_calls = adapter._parse_tool_calls(content)
+
+    assert tool_calls is not None
+    assert len(tool_calls) == 2
+
+
 def test_ollama_adapter_parse_tool_calls_none():
     """Test parsing when no tool calls."""
     config = LLMConfig()
