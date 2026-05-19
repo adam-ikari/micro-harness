@@ -5,7 +5,15 @@ from spark.agent import Agent
 from spark.config import Config, LLMConfig, SecurityConfig, HistoryConfig
 
 
-def test_agent_init():
+@pytest.fixture
+def mock_path_trust():
+    """Mock path trust to avoid stdin prompts."""
+    with patch('spark.agent.PathTrustManager') as mock:
+        mock.return_value.ask_trust_current_dir = Mock()
+        yield mock
+
+
+def test_agent_init(mock_path_trust):
     """测试 Agent 初始化"""
     config = Config()
     agent = Agent(config)
@@ -15,7 +23,7 @@ def test_agent_init():
     assert agent.security is not None
 
 
-def test_agent_build_messages():
+def test_agent_build_messages(mock_path_trust):
     """测试构建消息"""
     config = Config()
     agent = Agent(config)
@@ -28,7 +36,7 @@ def test_agent_build_messages():
     assert messages[-1]["content"] == "Hello"
 
 
-def test_agent_build_messages_with_history():
+def test_agent_build_messages_with_history(mock_path_trust):
     """测试构建消息包含历史"""
     config = Config()
     agent = Agent(config)
@@ -43,7 +51,7 @@ def test_agent_build_messages_with_history():
     assert len(messages) >= 3
 
 
-def test_agent_build_messages_with_skills():
+def test_agent_build_messages_with_skills(mock_path_trust):
     """测试构建消息包含 skills"""
     config = Config()
     agent = Agent(config)
@@ -57,7 +65,7 @@ def test_agent_build_messages_with_skills():
     assert any("Test skill content" in m.get("content", "") for m in messages)
 
 
-def test_agent_get_all_tools():
+def test_agent_get_all_tools(mock_path_trust):
     """测试获取所有工具"""
     config = Config()
     agent = Agent(config)
@@ -66,4 +74,5 @@ def test_agent_get_all_tools():
 
     # 应包含内置工具
     assert len(tools) >= 1
-    assert any(t["name"] == "run_shell" for t in tools)
+    # Tool name is "Bash" not "run_shell"
+    assert any(t["name"] == "Bash" for t in tools)

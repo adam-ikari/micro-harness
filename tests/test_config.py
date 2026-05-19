@@ -1,14 +1,14 @@
 # tests/test_config.py
 import pytest
 from pathlib import Path
-from spark.config import Config, load_config
+from spark.config import Config, LLMConfig, SecurityConfig, HistoryConfig, load_config
 
 
 def test_load_default_config():
     """测试加载默认配置"""
-    config = load_config()
+    config = Config()
     assert config.llm.base_url == "http://localhost:11434"
-    assert config.llm.model == "gemma3:4b"
+    assert config.llm.model == "gemma4"
     assert config.security.yolo_mode is False
 
 

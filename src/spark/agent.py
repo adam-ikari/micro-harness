@@ -118,11 +118,13 @@ class Agent:
         self.llm = OllamaAdapter(config.llm)
         self.history = HistoryManager(config.history)
         self.skills = SkillLoader(config.skill_paths)
-        self.security = SecurityManager(config.security, yolo=False)
-        self.mcp_client = MCPClient(config.mcp_servers)
-        self.mcp_client.connect_all_async()  # Non-blocking async connection
         self.mode = mode if mode in MODES else "ask"
         self.lang = lang if lang in LANGUAGES else "en"
+        # Yolo mode: enabled if mode is "yolo" OR config has yolo_mode=True
+        is_yolo = self.mode == "yolo" or config.security.yolo_mode
+        self.security = SecurityManager(config.security, yolo=is_yolo)
+        self.mcp_client = MCPClient(config.mcp_servers)
+        self.mcp_client.connect_all_async()  # Non-blocking async connection
 
         # Path trust system
         self.path_trust = PathTrustManager(trust_current_dir=config.security.trust_current_dir)
