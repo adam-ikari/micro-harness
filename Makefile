@@ -20,28 +20,20 @@ format:
 
 # Install development dependencies
 dev:
-	uv sync --extra dev --extra build
+	uv sync --extra dev
 
 # Install production dependencies
 install:
 	uv sync
 
 # Build Python package
-build-pkg:
+build:
 	uv build
-
-# Build binary executable
-build-binary:
-	uv run pyinstaller spark.spec
-
-# Build all
-build: build-pkg build-binary
 
 # Clean build artifacts
 clean:
 	rm -rf dist/
 	rm -rf build/
-	rm -rf *.spec
 	rm -rf .coverage
 	rm -rf htmlcov/
 	rm -rf .pytest_cache/
@@ -49,7 +41,7 @@ clean:
 	find . -type f -name "*.pyc" -delete
 
 # Run CI locally (simulate GitHub Actions)
-ci-local: lint test build-pkg
+ci-local: lint test build
 
 # Create release tag
 release:
@@ -67,9 +59,7 @@ help:
 	@echo "  format     - Format code with ruff"
 	@echo "  dev        - Install dev dependencies"
 	@echo "  install    - Install production dependencies"
-	@echo "  build      - Build package and binary"
-	@echo "  build-pkg  - Build Python package only"
-	@echo "  build-binary - Build binary executable"
+	@echo "  build      - Build Python package"
 	@echo "  clean      - Clean build artifacts"
 	@echo "  ci-local   - Run CI checks locally"
 	@echo "  release    - Create and push release tag"
