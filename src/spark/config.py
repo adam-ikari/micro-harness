@@ -12,12 +12,12 @@ import yaml
 @dataclass
 class LLMConfig:
     base_url: str = "http://localhost:11434"
-    model: str = "gemma3:1b"  # Default to small model
-    num_ctx: int = 2048  # Smaller context for small models
-    num_predict: int = 512  # Shorter responses
+    model: str = "gemma3:4b"  # Full model default
+    num_ctx: int = 4096  # Larger context for full model
+    num_predict: int = 1024  # Longer responses
     api_key: str = ""  # Optional API key for Anthropic-compatible APIs
-    # Small model optimizations
-    temperature: float = 0.3  # Lower temperature for more focused output
+    # Model optimizations
+    temperature: float = 0.7  # Higher temperature for more creative output
     top_p: float = 0.9
     repeat_penalty: float = 1.1
 
@@ -70,10 +70,10 @@ def _get_default_config() -> dict:
     return {
         "llm": {
             "base_url": "http://localhost:11434",
-            "model": "gemma3:1b",  # Small model default
-            "num_ctx": 2048,  # Small context
-            "num_predict": 512,  # Short responses
-            "temperature": 0.3,  # Focused output
+            "model": "gemma3:4b",  # Full model default
+            "num_ctx": 4096,  # Larger context
+            "num_predict": 1024,  # Longer responses
+            "temperature": 0.7,  # More creative
             "top_p": 0.9,
             "repeat_penalty": 1.1,
         },
@@ -91,8 +91,8 @@ def _get_default_config() -> dict:
             },
         },
         "history": {
-            "max_tokens": 2000,  # Smaller history for small models
-            "compress_threshold": 0.6,  # Compress earlier
+            "max_tokens": 4000,  # Larger history for full model
+            "compress_threshold": 0.7,
         },
     }
 

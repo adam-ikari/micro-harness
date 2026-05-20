@@ -8,7 +8,7 @@ def test_load_default_config():
     """测试加载默认配置"""
     config = Config()
     assert config.llm.base_url == "http://localhost:11434"
-    assert config.llm.model == "gemma3:1b"  # Small model default
+    assert config.llm.model == "gemma3:4b"  # Full model default
     assert config.security.yolo_mode is False
 
 
@@ -28,9 +28,9 @@ llm:
 def test_config_merge_with_defaults():
     """测试配置与默认值合并"""
     config = load_config()
-    # 默认值应该存在 (small model defaults)
-    assert config.history.max_tokens == 2000
-    assert config.history.compress_threshold == 0.6
+    # 默认值应该存在 (full model defaults)
+    assert config.history.max_tokens == 4000
+    assert config.history.compress_threshold == 0.7
 
 
 def test_find_config_files(tmp_path, monkeypatch):
