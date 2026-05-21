@@ -12,12 +12,11 @@ import yaml
 @dataclass
 class LLMConfig:
     base_url: str = "http://localhost:11434"
-    model: str = "gemma3:4b"  # Full model default
-    num_ctx: int = 4096  # Larger context for full model
-    num_predict: int = 1024  # Longer responses
+    model: str = "gemma3:4b"  # Default model
+    num_ctx: int = 4096
+    num_predict: int = 1024
     api_key: str = ""  # Optional API key for Anthropic-compatible APIs
-    # Model optimizations
-    temperature: float = 0.7  # Higher temperature for more creative output
+    temperature: float = 0.7
     top_p: float = 0.9
     repeat_penalty: float = 1.1
 
