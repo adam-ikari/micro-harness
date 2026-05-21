@@ -3,11 +3,11 @@
 /* Main application */
 ZeroAgentApp {
     background: $surface;
+    layout: vertical;
 }
 
-/* Header */
+/* Header - fixed at top */
 Header {
-    dock: top;
     height: 1;
     background: $primary;
     color: $text;
@@ -27,7 +27,7 @@ Header .model {
     color: $text-muted;
 }
 
-/* Message list */
+/* Message list - fills remaining space */
 MessageList {
     height: 1fr;
     overflow-y: auto;
@@ -94,9 +94,8 @@ ToolMessage .tool-name {
     text-style: bold;
 }
 
-/* Input box */
+/* Input box - fixed height above footer */
 InputBox {
-    dock: bottom;
     height: 3;
     background: $surface-darken-1;
     border-top: solid $primary;
@@ -112,9 +111,8 @@ InputBox .mode-indicator {
     text-style: bold;
 }
 
-/* Footer */
+/* Footer - fixed at bottom */
 Footer {
-    dock: bottom;
     height: 1;
     background: $surface-darken-2;
     color: $text-muted;
