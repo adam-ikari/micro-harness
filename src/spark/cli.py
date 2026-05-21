@@ -65,18 +65,26 @@ def main(config: str | None, prompt: str | None, mode: str, lang: str, trust: bo
         from spark.agent import Agent
         from spark.memory import MemoryManager
         from spark.llm import OllamaAdapter
+        from spark.errors import LLMError
 
-        agent = Agent(cfg, mode=mode, lang=lang)
+        try:
+            agent = Agent(cfg, mode=mode, lang=lang)
 
-        # Initialize memory manager
-        llm = OllamaAdapter(cfg.llm)
-        memory_manager = MemoryManager(memory_path, llm)
-        agent.history.set_memory_manager(memory_manager)
+            # Initialize memory manager
+            llm = OllamaAdapter(cfg.llm)
+            memory_manager = MemoryManager(memory_path, llm)
+            agent.history.set_memory_manager(memory_manager)
 
-        print(agent.run_once(prompt))
+            print(agent.run_once(prompt))
 
-        # Save to memory on exit
-        agent.history.save_to_memory()
+            # Save to memory on exit
+            agent.history.save_to_memory()
+        except LLMError as e:
+            print(f"LLM Error: {e}")
+            return 1
+        except Exception as e:
+            print(f"Error: {e}")
+            return 1
 
     else:
         # Default TUI mode
